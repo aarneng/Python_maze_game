@@ -1,7 +1,7 @@
 from square import Square
 
 
-class Grid:
+class NewGrid:
     def __init__(self, width=20, height=15):
         """ creates a list of size w * h"""
         self.height = height
@@ -26,3 +26,43 @@ class Grid:
 
     def set_active(self, x, y):
         self.grid[y][x].set_active()
+
+    def get_inactive_neighbours(self, x, y):
+        n = []
+        if x > 0:
+            i = self.grid[x - 1][y]
+            if not i:
+                n.append(i)
+        if y > 0:
+            i = self.grid[x][y - 1]
+            if not i:
+                n.append(i)
+        if x < self.width:
+            i = self.grid[x + 1][y]
+            if not i:
+                n.append(i)
+        if y < self.height:
+            i = self.grid[x][y + 1]
+            if not i:
+                n.append(i)
+        return n
+
+    def get_active_neighbours(self, x, y):
+        n = []
+        if x > 0:
+            i = self.grid[x - 1][y]
+            if i:
+                n.append(i)
+        if y > 0:
+            i = self.grid[x][y - 1]
+            if i:
+                n.append(i)
+        if x < self.width:
+            i = self.grid[x + 1][y]
+            if i:
+                n.append(i)
+        if y < self.height:
+            i = self.grid[x][y + 1]
+            if i:
+                n.append(i)
+        return n
