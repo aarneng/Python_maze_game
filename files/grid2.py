@@ -2,7 +2,7 @@ from square import Square
 
 
 class NewGrid:
-    def __init__(self, width=20, height=15):
+    def __init__(self, width=20, height=20):
         """ creates a list of size w * h"""
         self.height = height
         self.width = width
@@ -17,7 +17,7 @@ class NewGrid:
     def get_inactive_square(self):
         for sublist in self.grid:
             for square in sublist:
-                if not square.get_active:
+                if not square.get_active():
                     return square
         return False
 
@@ -28,41 +28,59 @@ class NewGrid:
         self.grid[y][x].set_active()
 
     def get_inactive_neighbours(self, x, y):
-        n = []
-        if x > 0:
-            i = self.grid[x - 1][y]
-            if not i:
-                n.append(i)
-        if y > 0:
-            i = self.grid[x][y - 1]
-            if not i:
-                n.append(i)
-        if x < self.width:
-            i = self.grid[x + 1][y]
-            if not i:
-                n.append(i)
-        if y < self.height:
-            i = self.grid[x][y + 1]
-            if not i:
-                n.append(i)
-        return n
+        try:
+            x, y = y, x
+            n = []
+            if x > 0:
+                i = self.grid[x - 1][y]
+                if not i.get_active():
+                    n.append(i)
+
+            if y > 0:
+                i = self.grid[x][y - 1]
+                if not i.get_active():
+                    n.append(i)
+
+            if x < self.width - 1:
+                i = self.grid[x + 1][y]
+                if not i.get_active():
+                    n.append(i)
+
+            if y < self.height - 1:
+                i = self.grid[x][y + 1]
+                if not i.get_active():
+                    n.append(i)
+            return n
+        except IndexError:
+            print(x, y, "error")
 
     def get_active_neighbours(self, x, y):
-        n = []
-        if x > 0:
-            i = self.grid[x - 1][y]
-            if i:
-                n.append(i)
-        if y > 0:
-            i = self.grid[x][y - 1]
-            if i:
-                n.append(i)
-        if x < self.width:
-            i = self.grid[x + 1][y]
-            if i:
-                n.append(i)
-        if y < self.height:
-            i = self.grid[x][y + 1]
-            if i:
-                n.append(i)
-        return n
+        try:
+            x, y = y, x
+            n = []
+            if x > 0:
+                i = self.grid[x - 1][y]
+                if i.get_active():
+                    n.append(i)
+
+            if y > 0:
+                i = self.grid[x][y - 1]
+                if i.get_active():
+                    n.append(i)
+
+            if x < self.width - 1:
+                i = self.grid[x + 1][y]
+                if i.get_active():
+                    n.append(i)
+
+            if y < self.height - 1:
+                i = self.grid[x][y + 1]
+                if i.get_active():
+                    n.append(i)
+
+            print(x, y)
+            for square in n:
+                print(square.get_coords())
+            return n
+        except IndexError:
+            print("beep boop", x, y)
