@@ -5,6 +5,7 @@ class Walls:
     def __init__(self, grid):
         self.width = grid.get_width()
         self.height = grid.get_height()
+        self.grid = grid
         self.vertical_walls = [[Wall(0, [i, j]) for i in range(self.width + 1)] for j in range(self.height)]
         self.horizontal_walls = [[Wall(1, [i, j]) for i in range(self.width)] for j in range(self.height + 1)]
 
@@ -79,3 +80,11 @@ class Walls:
                 return walls[self_y][self_x].get_activity()
             else:
                 return walls[self_y][self_x + 1].get_activity()
+
+    def get_all_routes_from_square(self, square):
+        neighbours = self.grid.get_active_neighbours(square.get_coords()[1], square.get_coords()[0])
+        ret = []
+        for neighbour in neighbours:
+            if not self.is_there_wall_between(square, neighbour):
+                ret.append(neighbour)
+        return ret

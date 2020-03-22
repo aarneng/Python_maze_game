@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 from test_grid import Walls
 from grid2 import NewGrid
 import maze
+from solve_maze import solve_maze
 
 
 def scale_by(x):
@@ -15,11 +16,14 @@ def scale_by(x):
 class Mane(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.grid = NewGrid(width=10, height=10)
+        self.test = False
+        self.grid = NewGrid(width=4, height=4)
         self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
         self.grid.set_active(0, 0)
         self.show_animation = True  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
         self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation)
+        self.maze_solved = False
+        self.my_maze_solution = []
         self.x_offset = 100
         self.y_offset = 100
         self.x_squares = self.grid.get_width()
@@ -29,7 +33,7 @@ class Mane(QMainWindow):
         self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
         self.toDraw = None
 
-        self.player_is_on_square = [0, 0]  # self.get_player_square()
+        self.player_is_on_square = [0, 0]
         self.goal_is_on_square = self.get_goal_square()
         self.player_is_on_ground = True
 
@@ -91,8 +95,14 @@ class Mane(QMainWindow):
                         painter.setPen(Qt.black)
                     else:
                         painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
-        g = self.grid.get_grid()
 
+        if self.test:
+            x = int(self.x_squares/2) + 1
+            y = int(self.y_squares / 2)
+            painter.drawRect(x * s, y * s, s, s)
+            square = self.grid.get_square([x, y])
+            for i in self.walls.get_all_routes_from_square(square):
+                painter.drawRect(i.get_coords()[0] * s, i.get_coords()[1] * s, s, s)
         painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
 
         self.goal_is_on_square = self.get_goal_square()
@@ -125,9 +135,17 @@ class Mane(QMainWindow):
             painter.drawEllipse(player_x * s + 18, player_y * s + 20, s / 6, s / 6)
             painter.drawEllipse(player_x * s + 28, player_y * s + 20, s / 6, s / 6)
             painter.drawEllipse(player_x * s + 20, player_y * s + 25, s / 4, s / 6)
-        if not self.maze_done:
+        if self.show_animation and not self.maze_done:
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation)
             self.update()
+        if self.maze_solved:
+            painter.setPen(Qt.red)
+            prev = self.player_is_on_square
+            for square in self.my_maze_solution:
+                painter.drawLine(prev[0] * s + 10 + s/2, prev[1] * s + 10 + s/2, square.get_coords()[0] * s + 10 + s/2,
+                                 square.get_coords()[1] * s + 10 + s/2)
+                prev = square.get_coords()
+            painter.setPen(Qt.black)
 
     def get_goal_square(self):
         if self.maze_done:
@@ -138,20 +156,10 @@ class Mane(QMainWindow):
                         return [i, j]
         return [0, 0]  # else
 
-    """def get_player_square(self):
-        if self.maze_done:
-            g = self.grid.get_grid()
-            for i in range(len(g)):
-                for j in range(len(g[i])):
-                    if g[i][j].get_player_status():
-                        return [i, j]
-        return [0, 0]"""
-
     def move_up(self):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1] - 1]
         ans = self.walls.is_there_wall_between(square, other_square)
-        print(ans)
         if not ans:
             self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
             self.update()
@@ -168,7 +176,6 @@ class Mane(QMainWindow):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0] - 1][self.player_is_on_square[1]]
         ans = self.walls.is_there_wall_between(square, other_square)
-        print(ans)
         if not ans:
             self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
             self.update()
@@ -187,7 +194,6 @@ class Mane(QMainWindow):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1] + 1]
         ans = self.walls.is_there_wall_between(square, other_square)
-        print(ans)
         if not ans:
             self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
             self.update()
@@ -206,7 +212,6 @@ class Mane(QMainWindow):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0] + 1][self.player_is_on_square[1]]
         ans = self.walls.is_there_wall_between(square, other_square)
-        print(ans)
         if not ans:
             self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
             self.update()
@@ -223,6 +228,13 @@ class Mane(QMainWindow):
         self.player_is_on_ground = not self.player_is_on_ground
         self.update()
 
+    def solve_my_maze(self):
+        self.maze_solved = True
+        self.my_maze_solution = solve_maze(self.grid, self.walls,
+                                           self.player_is_on_square,
+                                           self.goal_is_on_square)
+        self.update()
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_W:
             self.move_up()
@@ -234,7 +246,11 @@ class Mane(QMainWindow):
             self.move_right()
         if event.key() == Qt.Key_Space:
             self.jump()
-
+        if event.key() == Qt.Key_0:
+            self.solve_my_maze()
+        if event.key() == Qt.Key_T:
+            self.test = True
+            self.update()
 
 if __name__ == "__main__":
     App = QApplication(sys.argv)

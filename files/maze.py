@@ -1,5 +1,4 @@
 from random import choice, randint
-from test_grid import Walls
 
 
 def construct_maze(grid, my_walls, inactive_neighbours, show_animation):
@@ -15,11 +14,6 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation):
     the process goes on as long as there are inactive squares.
     """
 
-    """square = grid.get_inactive_square()
-    square.set_active()
-    coords = square.get_coords()
-    c_x = coords[0]
-    c_y = coords[1]"""
     maze_ready = False
     if not inactive_neighbours:
         maze_ready = True

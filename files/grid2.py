@@ -27,6 +27,10 @@ class NewGrid:
     def is_square_active(self, x, y):
         return self.grid[y][x].get_active()
 
+    def get_square(self, coords):
+        print(coords)
+        return self.grid[coords[1]][coords[0]]
+
     def set_active(self, x, y):
         self.grid[y][x].set_active()
 
@@ -79,10 +83,10 @@ class NewGrid:
         return n
 
     def make_goal(self, x, y):
-        self.grid[x][y].set_goal()
+        self.grid[y][x].set_goal()
 
     def add_player_to_square(self, x, y):
-        self.grid[x][y].set_player()
+        self.grid[y][x].set_player()
 
     def remove_player_from_square(self, x, y):
-        self.grid[x][y].remove_player()
+        self.grid[y][x].remove_player()
