@@ -2,6 +2,9 @@ from grid2 import NewGrid
 from wall import Wall
 
 
+# not used
+
+
 class Walls:
 
     def __init__(self):
