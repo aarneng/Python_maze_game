@@ -5,7 +5,6 @@ class Walls:
     def __init__(self, grid):
         self.width = grid.get_width()
         self.height = grid.get_height()
-        print(self.width, self.height)
         self.vertical_walls = [[Wall(0, [i, j]) for i in range(self.width + 1)] for j in range(self.height)]
         self.horizontal_walls = [[Wall(1, [i, j]) for i in range(self.width)] for j in range(self.height + 1)]
 
@@ -34,18 +33,49 @@ class Walls:
         other_x = other_square.get_coords()[0]
         other_y = other_square.get_coords()[1]
 
-        """print(self_x, other_x)
-        print(self_y, other_y, "\n")"""
+        if self_x - other_x == 0:
+            walls = self.horizontal_walls
+            if self_y - other_y == 1:
+                walls[self_y][self_x].set_inactive()
+            else:
+                walls[self_y + 1][self_x].set_inactive()
+        else:
+            walls = self.vertical_walls
+            if self_x - other_x == 1:
+                walls[self_y][self_x].set_inactive()
+            else:
+                walls[self_y][self_x + 1].set_inactive()
+
+    def is_there_wall_between(self, square, other_square):
+        """
+
+        :param square:
+        :param other_square:
+        :return: True if there is wall,
+        2 if there is a wall but only on the bottom (so player can jump over it)
+        3 if there is a wall but only on top, so player can walk under it
+        """
+        self_x = square.get_coords()[0]
+        self_y = square.get_coords()[1]
+        other_x = other_square.get_coords()[0]
+        other_y = other_square.get_coords()[1]
+
+        if self_x == 0 and other_x > 1:  # so player can't clip through other wall
+            print("x overflow")
+            return True
+        if self_y == 0 and other_y > 1:
+            print("y overflow")
+            return True
 
         if self_x - other_x == 0:
             walls = self.horizontal_walls
-            if self_y - other_y == 0:
-                walls[other_x][other_y + 1].set_inactive()
+            if self_y - other_y == 1:
+                return walls[self_y][self_x].get_activity()
             else:
-                walls[other_x][other_y].set_inactive()
+                return walls[self_y + 1][self_x].get_activity()
         else:
             walls = self.vertical_walls
-            if self_y - other_x == 0:
-                walls[other_x + 1][other_y].set_inactive()
+            if self_x - other_x == 1:
+                return walls[self_y][self_x].get_activity()
             else:
-                walls[other_x][other_y].set_inactive()
+                return walls[self_y][self_x + 1].get_activity()

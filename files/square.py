@@ -3,6 +3,8 @@ class Square:
         self.coords = coords
         # self.wall_status = walls
         self.active = False
+        self.is_goal = False
+        self.contains_player = False
 
     def get_coords(self):
         return self.coords
@@ -15,3 +17,12 @@ class Square:
 
     def set_active(self):
         self.active = True
+
+    def set_goal(self):
+        self.is_goal = True
+
+    def get_goal_status(self):
+        return self.is_goal
+
+    def get_player_status(self):
+        return self.contains_player
