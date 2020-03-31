@@ -1,99 +1,95 @@
 from random import choice
-
-
 # TODO: fix (problem is most likely with some method somewhere that mixes up the grid's/wall's [x][y])
 
-"""
+
+def get_all_routes_from_square(square, grid, walls):
+    ret = []
+    my_square = grid.get_grid()[square[0]][square[1]]
+    square_up = grid.get_grid()[square[0]][square[1] - 1]
+    if not walls.is_there_wall_between(my_square, square_up):
+        ret.append([square[0], square[1] - 1])
+    square_left = grid.get_grid()[square[0] - 1][square[1]]
+    if not walls.is_there_wall_between(my_square, square_left):
+        ret.append([square[0] - 1, square[1]])
+    if square[1] != grid.get_height() - 1:
+        square_down = grid.get_grid()[square[0]][square[1] + 1]
+        if not walls.is_there_wall_between(my_square, square_down):
+            ret.append([square[0], square[1] + 1])
+    if square[0] != grid.get_width() - 1:
+        square_right = grid.get_grid()[square[0] + 1][square[1]]
+        if not walls.is_there_wall_between(my_square, square_right):
+            ret.append([square[0] + 1, square[1]])
+    return ret
+
+
+def get_square_obj(square, grid):
+    return grid.get_grid()[square[1]][square[0]]
+
+
+def current(square_coords, grid):
+    return grid.get_grid()[square_coords[0]][square_coords[1]]
+
+
 def solve_maze(grid, walls, current_square, goal_square):
-
-    using tremaux's algoritm: https://www.youtube.com/watch?v=6OzpKm4te-E
-    :param grid:
-    :param walls:
-    :param current_square:
-    :param goal_square:
-    :return:
-
-
-    nodes_and_paths = {}
-    previous_square = None
     current_node = None
+    all_active_nodes = []
+    paths_from_nodes = {}
+    current_route_after_node = []
     final_route = [current_square]
-    route_after_node = []
-    dead_nodes = []
+    visited_squares = [current_square]
+
+    print("this is a test", current_square, get_square_obj(current_square, grid).get_coords())
     count = 0
-    test = 0
-    test2 = 0
-    test3 = 0
-    test4 = 0
-    while current_square != goal_square and count < 50:
+
+    while current_square != goal_square and count < 100:
         count += 1
-        routes = walls.get_all_routes_from_square(grid.get_active_neighbours(square.get_coords()[1], square.get_coords()[0]))
 
-        if previous_square is not None:
-            routes.remove(previous_square)
+        print(final_route)
 
-        for square in routes:
-            if square in dead_nodes:
-                routes.remove(square)
+        routes_from_current_square = get_all_routes_from_square(current_square, grid, walls)
 
-        if len(routes) > 1:
-            test += 1
-            current_node = current_square
-            nodes_and_paths[current_node] = routes
-            previous_square = current_square
-            current_square = choice(routes)
-            route_after_node = [current_square]
+        for square in visited_squares:
+            if square in routes_from_current_square:
+                routes_from_current_square.remove(square)
+
+        # print("test", current_routes)
+        if len(routes_from_current_square) > 1:  # if node
+            # print("hep")
+            current_square = choice(routes_from_current_square)
+            current_route_after_node.append(current_square)
+            final_route.append(current_square)
+            routes_from_current_square.remove(current_square)
+            # remove route to not go there when checking routes from this node
+
+            current_node = get_square_obj(current_square, grid)
+            all_active_nodes.append(current_node)
+            paths_from_nodes[current_node] = routes_from_current_square
+
+        elif len(routes_from_current_square) == 1 and current_node is not None:
+            current_square = routes_from_current_square[0]
+            final_route.append(current_square)
+            current_route_after_node.append(current_square)
+
+        elif len(routes_from_current_square) == 0:  # if dead end
+            # print(current_route_after_node)
+
+            #del(current_route_after_node[0])
+            for square in current_route_after_node:
+                final_route.remove(square)
+
+            while len(paths_from_nodes[current_node]) == 0:
+                all_active_nodes.remove(current_node)
+                current_node = all_active_nodes[-1]
+
+            current_square = choice(paths_from_nodes[current_node])
+            paths_from_nodes[current_node].remove(current_square)
+
+            """if len(paths_from_nodes[current_node]) == 0:
+                all_active_nodes.remove(current_node)"""
+
+            current_route_after_node = [current_square]
             final_route.append(current_square)
 
-        elif current_node is None:
-            test2 += 1
-            print(current_square.get_coords())
-            previous_square = current_square
-            current_square = routes[0]
-            final_route.append(current_square)
-
-        elif current_node is not None:
-            if len(routes) > 0:
-                test3 += 1
-                previous_square = current_square
-                current_square = routes[0]
-                route_after_node.append(current_square)
-                final_route.append(current_square)
-            else:
-                test4 += 1
-                try:
-                    final_route.remove(i for i in route_after_node)
-                except ValueError:
-                    pass
-                if len(route_after_node) == 0:
-                    final_route.remove(current_node)
-                    dead_nodes.append(current_node)
-                    del route_after_node[current_node]
-                    if len(nodes_and_paths) == 0:
-                        current_node = None
-                    previous_square = current_square
-                    current_square = final_route[-2]
-    for i in final_route:
-        print(i.get_coords())
-    return final_route
-"""
-
-
-def solve_maze(grid, walls, current_square, goal_square):
-    grid = grid.get_grid()
-    current_square = grid[current_square[0]][current_square[1]]
-    routes = walls.get_all_routes_from_square(current_square)
-    visited_squares = []
-    while current_square.get_coords() != goal_square:
-        current_square = choice(routes)
         visited_squares.append(current_square)
-        routes = walls.get_all_routes_from_square(current_square)
-        for square in routes:
-            if square in visited_squares:
-                routes.remove(square)
-        tp = [i.get_coords() for i in routes]
-        print(current_square.get_coords(), tp)
-    print()
-    for i in visited_squares:
-        print(i.get_coords())
-    return visited_squares
+
+    return final_route

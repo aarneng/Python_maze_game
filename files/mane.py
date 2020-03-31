@@ -17,12 +17,12 @@ class Mane(QMainWindow):
     def __init__(self):
         super().__init__()
         self.test = False
-        self.grid = NewGrid(width=4, height=4)
+        self.grid = NewGrid(width=10, height=10)
         self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
         self.grid.set_active(0, 0)
-        self.show_animation = True  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
+        self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
         self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation)
-        self.maze_solved = False
+        self.maze_solved = not self.show_animation
         self.my_maze_solution = []
         self.x_offset = 100
         self.y_offset = 100
@@ -106,8 +106,6 @@ class Mane(QMainWindow):
         painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
 
         self.goal_is_on_square = self.get_goal_square()
-        while self.maze_done and self.goal_is_on_square == [0, 0]:
-            self.update()
 
         goal_x = self.goal_is_on_square[0]
         goal_y = self.goal_is_on_square[1]
@@ -123,37 +121,40 @@ class Mane(QMainWindow):
             painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)  # for fitting
             painter.setPen(Qt.black)
             painter.setBrush(Qt.black)
-            painter.drawEllipse(player_x * s + 18, player_y * s + 20, s / 6, s / 6)
-            painter.drawEllipse(player_x * s + 28, player_y * s + 20, s / 6, s / 6)
-            painter.drawArc(player_x * s + 20, player_y * s + 25, s / 4, s / 6, 180 * 16, 180 * 16)
+            painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
+            painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
+            painter.drawArc(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6, 180 * 16, 180 * 16)
         else:
             painter.setPen(Qt.yellow)
             painter.setBrush(Qt.yellow)
             painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
             painter.setPen(Qt.black)
             painter.setBrush(Qt.black)
-            painter.drawEllipse(player_x * s + 18, player_y * s + 20, s / 6, s / 6)
-            painter.drawEllipse(player_x * s + 28, player_y * s + 20, s / 6, s / 6)
-            painter.drawEllipse(player_x * s + 20, player_y * s + 25, s / 4, s / 6)
+            painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
+            painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
+            painter.drawEllipse(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6)
         if self.show_animation and not self.maze_done:
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation)
             self.update()
+
         if self.maze_solved:
             painter.setPen(Qt.red)
-            prev = self.player_is_on_square
+            try:
+                prev = self.my_maze_solution[0]
+            except IndexError:
+                prev = [0, 0]
             for square in self.my_maze_solution:
-                painter.drawLine(prev[0] * s + 10 + s/2, prev[1] * s + 10 + s/2, square.get_coords()[0] * s + 10 + s/2,
-                                 square.get_coords()[1] * s + 10 + s/2)
-                prev = square.get_coords()
+                painter.drawLine(prev[0] * s + 10 + s/2, prev[1] * s + 10 + s/2, square[0] * s + 10 + s/2,
+                                 square[1] * s + 10 + s/2)
+                prev = square
             painter.setPen(Qt.black)
 
     def get_goal_square(self):
-        if self.maze_done:
-            g = self.grid.get_grid()
-            for i in range(len(g)):
-                for j in range(len(g[i])):
-                    if g[i][j].get_goal_status():
-                        return [i, j]
+        g = self.grid.get_grid()
+        for i in range(len(g)):
+            for j in range(len(g[i])):
+                if g[i][j].get_goal_status():
+                    return [i, j]
         return [0, 0]  # else
 
     def move_up(self):

@@ -62,10 +62,10 @@ class Walls:
         other_y = other_square.get_coords()[1]
 
         if self_x == 0 and other_x > 1:  # so player can't clip through other wall
-            print("x overflow")
+            #print("x overflow")
             return True
         if self_y == 0 and other_y > 1:
-            print("y overflow")
+            #print("y overflow")
             return True
 
         if self_x - other_x == 0:
