@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 import sys
-from PyQt5.QtGui import QPainter, QBrush, QPen
+from PyQt5.QtGui import QPainter, QBrush, QPen, QFont
 from PyQt5.QtCore import Qt
 from test_grid import Walls
 from grid2 import NewGrid
@@ -28,10 +28,11 @@ class Mane(QMainWindow):
         self.y_offset = 100
         self.x_squares = self.grid.get_width()
         self.y_squares = self.grid.get_height()
-        self.width = 500 * scale_by(self.x_squares)
-        self.height = 500 * scale_by(self.y_squares)
+        self.width = 500
+        self.height = 500
         self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
         self.toDraw = None
+        self.show_menu = True
 
         self.player_is_on_square = [0, 0]
         self.goal_is_on_square = self.get_goal_square()
@@ -45,109 +46,142 @@ class Mane(QMainWindow):
         self.show()
 
     def paintEvent(self, event):
-        """
-        coords: tuple, eg. (5, 2) -> squares, not px
-        args: -> dictionary, eg. {
-            up: True (wall)
-            left: True (wall)
-            Right: False (no wall)
-            down: True (wall)
-        }
-        :return: None
-        """
-        """x_s = self.x_squares
-        y_s = self.y_squares
-        square_size = min(self.width / x_s, self.height / y_s)
         painter = QPainter(self)
-        painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
-        coords = self.toDraw[0]
-        args = self.toDraw[1]"""
-        if self.player_is_on_square == self.goal_is_on_square:
-            pass
-        painter = QPainter(self)
-        painter.setPen(Qt.black)
-        s = self.square_size
-        horizontal_walls = self.walls.get_horizontal()
-        vertical_walls = self.walls.get_vertical()
-        for i in range(len(horizontal_walls)):
-            for j in range(len(horizontal_walls[i])):
-                if horizontal_walls[i][j].get_activity():
-                    if horizontal_walls[i][j].get_activity() == 3:
-                        painter.setPen(Qt.green)
-                        painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
-                        painter.setPen(Qt.black)
-                    elif horizontal_walls[i][j].get_activity() == 2:
-                        painter.setPen(Qt.blue)
-                        painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
-                        painter.setPen(Qt.black)
-                    else:
-                        painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
-        for i in range(len(vertical_walls)):
-            for j in range(len(vertical_walls[i])):
-                if vertical_walls[i][j].get_activity():
-                    if vertical_walls[i][j].get_activity() == 3:
-                        painter.setPen(Qt.green)
-                        painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
-                        painter.setPen(Qt.black)
-                    elif vertical_walls[i][j].get_activity() == 2:
-                        painter.setPen(Qt.blue)
-                        painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
-                        painter.setPen(Qt.black)
-                    else:
-                        painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
+        if self.show_menu:
+            painter.setFont(QFont("Times", 50))
+            painter.drawText(50, 50, "Welcome to my maze!")
 
-        if self.test:
-            x = int(self.x_squares/2) + 1
-            y = int(self.y_squares / 2)
-            painter.drawRect(x * s, y * s, s, s)
-            square = self.grid.get_square([x, y])
-            for i in self.walls.get_all_routes_from_square(square):
-                painter.drawRect(i.get_coords()[0] * s, i.get_coords()[1] * s, s, s)
-        painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
+            painter.setFont(QFont("Times", 20))
 
-        self.goal_is_on_square = self.get_goal_square()
+            painter.drawRoundedRect(30, 80, 25, 25, 5, 5)
+            painter.drawText(33, 100, "W")
+            painter.drawRoundedRect(5, 105, 25, 25, 5, 5)
+            painter.drawText(10, 125, "A")
+            painter.drawRoundedRect(30, 105, 25, 25, 5, 5)
+            painter.drawText(35, 125, "S")
+            painter.drawRoundedRect(55, 105, 25, 25, 5, 5)
+            painter.drawText(60, 125, "D")
 
-        goal_x = self.goal_is_on_square[0]
-        goal_y = self.goal_is_on_square[1]
-        painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
+            painter.drawText(100, 125, "Move your character with the WASD keys")
 
-        """self.player_is_on_square = self.get_player_square()"""
-        player_x = self.player_is_on_square[0]
-        player_y = self.player_is_on_square[1]
+            painter.drawRoundedRect(10, 155, 60, 20, 5, 5)
+            painter.drawText(75, 170, "Toggle flight by pressing the spacebar")
 
-        if self.player_is_on_ground:
-            painter.setPen(Qt.yellow)
-            painter.setBrush(Qt.yellow)
-            painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)  # for fitting
+            painter.drawText(75, 220, "You can walk under green walls")
+            painter.setPen(QPen(Qt.green, 4, Qt.SolidLine))
+            painter.drawLine(60, 195, 60, 235)
+
             painter.setPen(Qt.black)
-            painter.setBrush(Qt.black)
-            painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
-            painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
-            painter.drawArc(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6, 180 * 16, 180 * 16)
+            painter.drawText(75, 270, "You can fly under blue walls")
+            painter.setPen(QPen(Qt.blue, 4, Qt.SolidLine))
+            painter.drawLine(60, 245, 60, 285)
+
+            painter.setPen(Qt.black)
+            painter.drawText(75, 320, "Press 0 if you're stuck. It'll show you what path to take")
+            painter.setFont(QFont("Times", 10))
+            painter.drawText(75, 340, "(although some might call this cheating!)")
+
+            painter.setFont(QFont("Times", 20))
+
+            if not self.show_animation:
+                painter.drawText(75, 400, "Press the enter key to show the maze's animation")
+            else:
+                painter.drawText(75, 400, "Animation toggled on!")
+                painter.drawText(75, 430, ("Press the enter key to remove the maze's animation"))
+
+            painter.drawText(75, 500, "Left click to start to start")
+
         else:
-            painter.setPen(Qt.yellow)
-            painter.setBrush(Qt.yellow)
-            painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
+            if self.player_is_on_square == self.goal_is_on_square:
+                pass
             painter.setPen(Qt.black)
-            painter.setBrush(Qt.black)
-            painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
-            painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
-            painter.drawEllipse(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6)
-        if self.show_animation and not self.maze_done:
-            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation)
-            self.update()
+            s = self.square_size
+            horizontal_walls = self.walls.get_horizontal()
+            vertical_walls = self.walls.get_vertical()
+            for i in range(len(horizontal_walls)):
+                for j in range(len(horizontal_walls[i])):
+                    if horizontal_walls[i][j].get_activity():
+                        if horizontal_walls[i][j].get_activity() == 3:
+                            painter.setPen(Qt.green)
+                            painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
+                            painter.setPen(Qt.black)
+                        elif horizontal_walls[i][j].get_activity() == 2:
+                            painter.setPen(Qt.blue)
+                            painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
+                            painter.setPen(Qt.black)
+                        else:
+                            painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
+            for i in range(len(vertical_walls)):
+                for j in range(len(vertical_walls[i])):
+                    if vertical_walls[i][j].get_activity():
+                        if vertical_walls[i][j].get_activity() == 3:
+                            painter.setPen(Qt.green)
+                            painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
+                            painter.setPen(Qt.black)
+                        elif vertical_walls[i][j].get_activity() == 2:
+                            painter.setPen(Qt.blue)
+                            painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
+                            painter.setPen(Qt.black)
+                        else:
+                            painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
 
-        if self.maze_solved:
-            painter.setPen(Qt.red)
-            try:
-                prev = self.my_maze_solution[0]
-            except IndexError:
-                prev = [0, 0]
-            for square in self.my_maze_solution:
-                painter.drawLine(prev[0] * s + 10 + s/2, prev[1] * s + 10 + s/2, square[0] * s + 10 + s/2,
-                                 square[1] * s + 10 + s/2)
-                prev = square
-            painter.setPen(Qt.black)
+            """if self.test:
+                    x = int(self.x_squares/2) + 1
+                    y = int(self.y_squares / 2)
+                    painter.drawRect(x * s, y * s, s, s)
+                    square = self.grid.get_square([x, y])
+                    for i in self.walls.get_all_routes_from_square(square):
+                        painter.drawRect(i.get_coords()[0] * s, i.get_coords()[1] * s, s, s)"""
+
+            painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
+
+            self.goal_is_on_square = self.get_goal_square()
+
+            goal_x = self.goal_is_on_square[0]
+            goal_y = self.goal_is_on_square[1]
+            painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
+
+            """self.player_is_on_square = self.get_player_square()"""
+            player_x = self.player_is_on_square[0]
+            player_y = self.player_is_on_square[1]
+
+            if self.player_is_on_ground:
+                painter.setPen(Qt.yellow)
+                painter.setBrush(Qt.yellow)
+                painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)  # for fitting
+                painter.setPen(Qt.black)
+                painter.setBrush(Qt.black)
+                painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
+                painter.drawArc(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6, 180 * 16, 180 * 16)
+            else:
+                painter.setPen(Qt.yellow)
+                painter.setBrush(Qt.yellow)
+                painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
+                painter.setPen(Qt.black)
+                painter.setBrush(Qt.black)
+                painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6)
+            if self.show_animation and not self.maze_done:
+                self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid,
+                                                                                                            self.walls,
+                                                                                                            self._grid_inactive_neighbours,
+                                                                                                            self.show_animation)
+                self.update()
+
+            if self.maze_solved:
+                painter.setPen(Qt.red)
+                try:
+                    prev = self.my_maze_solution[0]
+                except IndexError:
+                    prev = [0, 0]  # just in case
+
+                for square in self.my_maze_solution:
+                    painter.drawLine(prev[0] * s + 10 + s / 2, prev[1] * s + 10 + s / 2, square[0] * s + 10 + s / 2,
+                                     square[1] * s + 10 + s / 2)
+                    prev = square
+                painter.setPen(Qt.black)
 
     def get_goal_square(self):
         g = self.grid.get_grid()
@@ -249,9 +283,13 @@ class Mane(QMainWindow):
             self.jump()
         if event.key() == Qt.Key_0:
             self.solve_my_maze()
-        if event.key() == Qt.Key_T:
-            self.test = True
+        if event.key() == Qt.Key_Return:
+            self.show_animation = not self.show_animation
             self.update()
+
+    def mousePressEvent(self, event):
+        self.show_menu = False
+        self.update()
 
 if __name__ == "__main__":
     App = QApplication(sys.argv)
