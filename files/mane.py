@@ -1,12 +1,15 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow
 import sys
 from PyQt5.QtGui import QPainter, QBrush, QPen, QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtMultimedia import QSound, QSoundEffect
+from PyQt5.QtCore import Qt, QCoreApplication, QUrl
 from test_grid import Walls
 from grid2 import NewGrid
 import maze
 from solve_maze import solve_maze
+from random import randint, choice
+from time import sleep
 
 
 def scale_by(x):
@@ -92,8 +95,6 @@ class Mane(QMainWindow):
             painter.drawText(75, 500, "Left click to start to start")
 
         else:
-            if self.player_is_on_square == self.goal_is_on_square:
-                pass
             painter.setPen(Qt.black)
             s = self.square_size
             horizontal_walls = self.walls.get_horizontal()
@@ -182,6 +183,22 @@ class Mane(QMainWindow):
                                      square[1] * s + 10 + s / 2)
                     prev = square
                 painter.setPen(Qt.black)
+
+            if self.player_is_on_square == self.goal_is_on_square:
+
+                explosion = QSoundEffect()
+                explosion.setSource(QUrl("explosion.wav"))
+                explosion.play()
+
+                painter.setOpacity(0.7)
+                for i in range(100):
+                    painter.setBrush(choice([Qt.red, Qt.yellow, Qt.darkRed, Qt.white]))
+                    s = randint(2, 250)
+                    painter.drawEllipse(randint(0, 400), randint(0, 400), s, s)
+                painter.setPen(Qt.black)
+                painter.setOpacity(1)
+                painter.setFont(QFont("Times", 75))
+                painter.drawText(150, 270, "You won!")
 
     def get_goal_square(self):
         g = self.grid.get_grid()
@@ -290,6 +307,7 @@ class Mane(QMainWindow):
     def mousePressEvent(self, event):
         self.show_menu = False
         self.update()
+
 
 if __name__ == "__main__":
     App = QApplication(sys.argv)
