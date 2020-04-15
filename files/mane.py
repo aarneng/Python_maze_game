@@ -23,8 +23,10 @@ class Mane(QMainWindow):
         self.grid = NewGrid(width=10, height=10)
         self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
         self.grid.set_active(0, 0)
+        self.player_is_on_square = [0, 0]
+
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
-        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation)
+        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
         self.maze_solved = not self.show_animation
         self.my_maze_solution = []
         self.x_offset = 100
@@ -37,7 +39,6 @@ class Mane(QMainWindow):
         self.toDraw = None
         self.show_menu = True
 
-        self.player_is_on_square = [0, 0]
         self.goal_is_on_square = self.get_goal_square()
         self.player_is_on_ground = True
 
@@ -92,7 +93,7 @@ class Mane(QMainWindow):
                 painter.drawText(75, 400, "Animation toggled on!")
                 painter.drawText(75, 430, ("Press the enter key to remove the maze's animation"))
 
-            painter.drawText(75, 500, "Left click to start to start")
+            painter.drawText(75, 500, "Left click to start the game")
 
         else:
             painter.setPen(Qt.black)

@@ -24,5 +24,11 @@ class Square:
     def get_goal_status(self):
         return self.is_goal
 
+    def set_player(self):
+        self.contains_player = True
+
+    def unset_player(self):
+        self.contains_player = False
+
     def get_player_status(self):
         return self.contains_player

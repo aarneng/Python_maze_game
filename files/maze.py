@@ -1,7 +1,7 @@
 from random import choice, randint
 
 
-def construct_maze(grid, my_walls, inactive_neighbours, show_animation):
+def construct_maze(grid, my_walls, inactive_neighbours, show_animation, player_square):
     """
     edits grid('s walls) to make a maze
     using randomised prim's algorithm.
@@ -44,6 +44,7 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation):
     goal_x = randint(grid.get_width() / difficulty, grid.get_width() - 1)
     goal_y = randint(grid.get_height() / difficulty, grid.get_height() - 1)
     grid.make_goal(goal_x, goal_y)
-    print(goal_x, goal_y)
+    grid.add_player_to_square(player_square[0], player_square[1])
+    #print(goal_x, goal_y)
 
     return grid, my_walls, maze_ready, inactive_neighbours
