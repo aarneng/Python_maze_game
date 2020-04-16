@@ -8,6 +8,7 @@ from test_grid import Walls
 from grid2 import NewGrid
 import maze
 from solve_maze import solve_maze
+from read_write_files import write_file, read_file
 from random import randint, choice
 from time import sleep
 
@@ -26,7 +27,11 @@ class Mane(QMainWindow):
         self.player_is_on_square = [0, 0]
 
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
-        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+        #self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+        self.grid, self.walls, self.msg = read_file("mymaze.txt")
+        self.maze_done = True
+        self._grid_inactive_neighbours = []
+
         self.maze_solved = not self.show_animation
         self.my_maze_solution = []
         self.x_offset = 100

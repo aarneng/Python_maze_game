@@ -6,7 +6,7 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation, player_s
     edits grid('s walls) to make a maze
     using randomised prim's algorithm.
     Initially, all the squares in the grid have walls between them.
-    The algorithm initially chooses an inactive square (0,0), and makes that square active.
+    The algorithm initially chooses the inactive square (0,0), and makes that square active.
     it then checks all the inactive squares next to that square, and adds them to a list.
     it then chooses a random square from that list, makes it active, and removes the wall between those two squares.
     it then checks all the inactive squares around the new square, and adds them to the inactive squares list,
