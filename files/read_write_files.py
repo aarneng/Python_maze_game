@@ -66,10 +66,8 @@ def read_file(filename):
         x, y = 0, 0
         checking_vertical = False
         allowed_chars = ["_", "-", "=", "/", "\\", ";", "0", "."]
-        count = 0
         for line in f:
             x = 0
-            count += 1
             for char in line.split("\n")[0]:
                 if char == "_":
                     pass
