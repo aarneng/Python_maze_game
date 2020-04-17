@@ -1,5 +1,5 @@
 from PyQt5 import QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QInputDialog, QLineEdit
 import sys
 from PyQt5.QtGui import QPainter, QBrush, QPen, QFont
 from PyQt5.QtMultimedia import QSound, QSoundEffect
@@ -25,12 +25,13 @@ class Mane(QMainWindow):
         self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
         self.grid.set_active(0, 0)
         self.player_is_on_square = [0, 0]
+        self.prev_square = None
 
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
-        #self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
-        self.grid, self.walls, self.msg = read_file("mymaze.txt")
-        self.maze_done = True
-        self._grid_inactive_neighbours = []
+        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+        #self.grid, self.walls, self.msg = read_file("mymaze.txt")
+        #self.maze_done = True
+        #self._grid_inactive_neighbours = []
 
         self.maze_solved = not self.show_animation
         self.my_maze_solution = []
@@ -109,36 +110,28 @@ class Mane(QMainWindow):
                 for j in range(len(horizontal_walls[i])):
                     if horizontal_walls[i][j].get_activity():
                         if horizontal_walls[i][j].get_activity() == 3:
-                            painter.setPen(Qt.green)
+                            painter.setPen(QPen(Qt.green, 2, Qt.SolidLine))
                             painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
-                            painter.setPen(Qt.black)
+                            painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
                         elif horizontal_walls[i][j].get_activity() == 2:
-                            painter.setPen(Qt.blue)
+                            painter.setPen(QPen(Qt.blue, 2, Qt.SolidLine))
                             painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
-                            painter.setPen(Qt.black)
+                            painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
                         else:
                             painter.drawLine(i * s + 10, j * s + 10, i * s + 10, (j + 1) * s + 10)
             for i in range(len(vertical_walls)):
                 for j in range(len(vertical_walls[i])):
                     if vertical_walls[i][j].get_activity():
                         if vertical_walls[i][j].get_activity() == 3:
-                            painter.setPen(Qt.green)
+                            painter.setPen(QPen(Qt.green, 2, Qt.SolidLine))
                             painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
-                            painter.setPen(Qt.black)
+                            painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
                         elif vertical_walls[i][j].get_activity() == 2:
-                            painter.setPen(Qt.blue)
+                            painter.setPen(QPen(Qt.blue, 2, Qt.SolidLine))
                             painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
-                            painter.setPen(Qt.black)
+                            painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
                         else:
                             painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
-
-            """if self.test:
-                    x = int(self.x_squares/2) + 1
-                    y = int(self.y_squares / 2)
-                    painter.drawRect(x * s, y * s, s, s)
-                    square = self.grid.get_square([x, y])
-                    for i in self.walls.get_all_routes_from_square(square):
-                        painter.drawRect(i.get_coords()[0] * s, i.get_coords()[1] * s, s, s)"""
 
             painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
 
@@ -148,7 +141,6 @@ class Mane(QMainWindow):
             goal_y = self.goal_is_on_square[1]
             painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
 
-            """self.player_is_on_square = self.get_player_square()"""
             player_x = self.player_is_on_square[0]
             player_y = self.player_is_on_square[1]
 
@@ -217,52 +209,67 @@ class Mane(QMainWindow):
     def move_up(self):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1] - 1]
-        ans = self.walls.is_there_wall_between(square, other_square)
-        if not ans:
+        wall = self.walls.is_there_wall_between(square, other_square)
+        if not wall:
+            self.prev_square = self.player_is_on_square
             self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
-            self.update()
-        elif ans == 3:
+        elif wall == 3:
             if self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
-                self.update()
-        elif ans == 2:
+        elif wall == 2:
             if not self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
-                self.update()
+        else:
+            return
+        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
+        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
+        self.update()
 
     def move_left(self):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0] - 1][self.player_is_on_square[1]]
         ans = self.walls.is_there_wall_between(square, other_square)
         if not ans:
+            self.prev_square = self.player_is_on_square
             self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
-            self.update()
         elif ans == 3:
             if self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
-                self.update()
         elif ans == 2:
             if not self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
-                self.update()
+        else:
+            return
+        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
+        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
+        self.update()
 
     def move_down(self):
         if self.player_is_on_square[1] > self.grid.get_height() - 2:
             return
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
         other_square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1] + 1]
-        ans = self.walls.is_there_wall_between(square, other_square)
-        if not ans:
+        wall = self.walls.is_there_wall_between(square, other_square)
+        if not wall:
+            self.prev_square = self.player_is_on_square
             self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
-            self.update()
-        elif ans == 3:
+        elif wall == 3:
             if self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
-                self.update()
-        elif ans == 2:
+        elif wall == 2:
             if not self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
-                self.update()
+        else:
+            return
+        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
+        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
+        self.update()
 
     def move_right(self):
         if self.player_is_on_square[0] > self.grid.get_width() - 2:
@@ -271,16 +278,22 @@ class Mane(QMainWindow):
         other_square = self.grid.get_grid()[self.player_is_on_square[0] + 1][self.player_is_on_square[1]]
         ans = self.walls.is_there_wall_between(square, other_square)
         if not ans:
+            self.prev_square = self.player_is_on_square
             self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
-            self.update()
         elif ans == 3:
             if self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
-                self.update()
         elif ans == 2:
             if not self.player_is_on_ground:
+                self.prev_square = self.player_is_on_square
                 self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
-                self.update()
+        else:
+            return
+
+        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
+        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
+        self.update()
 
     def jump(self):
         self.player_is_on_ground = not self.player_is_on_ground
@@ -309,6 +322,10 @@ class Mane(QMainWindow):
         if event.key() == Qt.Key_Return:
             self.show_animation = not self.show_animation
             self.update()
+        if event.key() == Qt.Key_R:
+            fn, bl = QInputDialog.getText(self, "Get text", "Filename:", QLineEdit.Normal)
+            print(fn)
+            write_file(self.grid, self.walls, fn + ".txt")
 
     def mousePressEvent(self, event):
         self.show_menu = False

@@ -4,7 +4,10 @@ from maze import construct_maze
 from square import Square
 
 
-def write_file(grid, walls, filename="mymaze.txt"):
+def write_file(grid, walls, filename):
+    if filename == ".txt":
+        filename = "mymaze.txt"
+
     with open(filename, "w") as f:
         width = grid.get_width()
         height = grid.get_height()
@@ -13,32 +16,40 @@ def write_file(grid, walls, filename="mymaze.txt"):
         vertical = walls.get_vertical()
         horizontal = walls.get_horizontal()
         grd = grid.get_grid()
+        goal_found = False
 
-        for i in range(height):
+        for i in range(height + 1):
+            # the + 1 in height and width are because the vert. 2d array of walls
+            # is of size (w + 1 * h) and hor. arr is (w * h + 1)
             for j in range(width):
-                if horizontal[i][j].get_activity() == 2:  # ground wall
+                if vertical[j][i].get_activity() == 2:  # ground wall
                     f.write("-")
-                elif horizontal[i][j].get_activity() == 3:  # ceiling wall
+                elif vertical[j][i].get_activity() == 3:  # ceiling wall
                     f.write("=")
-                elif horizontal[i][j].get_activity():
+                elif vertical[j][i].get_activity():
                     f.write("_")
                 else:
                     f.write(" ")
             f.write("\n")
 
-            for j in range(width):
-                if vertical[i][j].get_activity() == 2:  # ground wall
+            for j in range(width + 1):
+                if i >= height:
+                    break
+                if horizontal[j][i].get_activity() == 2:  # ground wall
                     f.write("\\")
-                elif vertical[i][j].get_activity() == 3:  # ceiling wall
+                elif horizontal[j][i].get_activity() == 3:  # ceiling wall
                     f.write(";")
-                elif vertical[i][j].get_activity():
+                elif horizontal[j][i].get_activity():
                     f.write("/")
                 else:
                     f.write(" ")
-
-                if grd[i][j].get_goal_status():
+                if grd[min(width - 1, j)][min(height - 1, i)].get_goal_status() and not goal_found:
+                    # grid size is only of size w * h
+                    j -= 1
                     f.write("0")
-                if grd[i][j].get_player_status():
+                    goal_found = True
+                if grd[min(width - 1, j)][min(height - 1, i)].get_player_status():
+                    j -= 1
                     f.write(".")
             f.write("\n")
 
@@ -107,4 +118,4 @@ def read_file(filename):
 
 #write_file(grid, walls)
 
-read_file("mymaze.txt")
+#read_file("mymaze.txt")
