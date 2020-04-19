@@ -78,6 +78,32 @@ class Mane(QMainWindow):
             painter.drawRoundedRect(10, 155, 60, 20, 5, 5)
             painter.drawText(75, 170, "Toggle flight by pressing the spacebar")
 
+            painter.setPen(Qt.yellow)
+            painter.setBrush(Qt.yellow)
+            painter.drawEllipse(400, 150, 30, 30)
+            painter.setPen(Qt.black)
+            painter.setBrush(Qt.black)
+            painter.drawEllipse(410, 155, 5, 5)
+            painter.drawEllipse(420, 155, 5, 5)
+            painter.drawArc(415, 165, 6, 4, 180 * 16, 180 * 16)
+
+            painter.setPen(Qt.yellow)
+            painter.setBrush(Qt.yellow)
+            painter.drawEllipse(470, 150, 35, 35)
+            painter.setPen(Qt.black)
+            painter.setBrush(Qt.black)
+            painter.drawEllipse(480, 155, 5, 5)
+            painter.drawEllipse(490, 155, 5, 5)
+            painter.drawEllipse(485, 165, 6, 4)
+
+            painter.drawLine(435, 155, 465, 155)
+            painter.drawLine(465, 155, 455, 145)
+            painter.drawLine(465, 155, 455, 165)
+
+            painter.drawLine(465, 175, 435, 175)
+            painter.drawLine(435, 175, 445, 165)
+            painter.drawLine(435, 175, 445, 185)
+
             painter.drawText(75, 220, "You can walk under green walls")
             painter.setPen(QPen(Qt.green, 4, Qt.SolidLine))
             painter.drawLine(60, 195, 60, 235)
@@ -94,13 +120,16 @@ class Mane(QMainWindow):
 
             painter.setFont(QFont("Times", 20))
 
-            if not self.show_animation:
-                painter.drawText(75, 400, "Press the enter key to show the maze's animation")
-            else:
-                painter.drawText(75, 400, "Animation toggled on!")
-                painter.drawText(75, 430, ("Press the enter key to remove the maze's animation"))
+            painter.drawText(75, 400, f"Maze size is currently {self.grid.get_height()} by {self.grid.get_height()}.")
+            painter.drawText(75, 430, "press the + and - buttons to change the size!")
 
-            painter.drawText(75, 500, "Left click to start the game")
+            if not self.show_animation:
+                painter.drawText(75, 480, "Press the enter key to show the maze's animation")
+            else:
+                painter.drawText(75, 480, "Animation toggled on!")
+                painter.drawText(75, 510, "Press the enter key to remove the maze's animation")
+
+            painter.drawText(75, 550, "Left click to start the game")
 
         else:
             painter.setPen(Qt.black)
@@ -160,9 +189,9 @@ class Mane(QMainWindow):
                 painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.black)
-                painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
-                painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
-                painter.drawEllipse(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.7), player_y * s + (s / 2.5), s / 6, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.2), player_y * s + (s / 2.5), s / 6, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.6), player_y * s + (s / 1.5), s / 3.5, s / 5)
             if self.show_animation and not self.maze_done:
                 self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid,
                                                                                                             self.walls,
@@ -325,6 +354,12 @@ class Mane(QMainWindow):
             self.solve_my_maze()
         if event.key() == Qt.Key_Return:
             self.show_animation = not self.show_animation
+            self.update()
+        if event.key() == Qt.Key_Plus:
+            self.grid = NewGrid(width=self.grid.get_width()+1, height=self.grid.get_height()+1)
+            self.update()
+        if event.key() == Qt.Key_Minus:
+            self.grid = NewGrid(width=max(self.grid.get_width()-1, 1), height=max(self.grid.get_height()-1, 1))
             self.update()
         if event.key() == Qt.Key_R:
             fn, bl = QInputDialog.getText(self, "Get text", "Filename:", QLineEdit.Normal)
