@@ -28,10 +28,10 @@ class Mane(QMainWindow):
         self.prev_square = None
 
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
-        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
-        #self.grid, self.walls, self.msg = read_file("mymaze.txt")
-        #self.maze_done = True
-        #self._grid_inactive_neighbours = []
+        #self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+        self.grid, self.walls, self.msg = read_file("mymaze.txt")
+        self.maze_done = True
+        self._grid_inactive_neighbours = []
 
         self.maze_solved = not self.show_animation
         self.my_maze_solution = []
