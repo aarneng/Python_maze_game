@@ -1,5 +1,4 @@
 from random import choice
-# TODO: fix (problem is most likely with some method somewhere that mixes up the grid's/wall's [x][y])
 
 
 def get_all_routes_from_square(square, grid, walls):
@@ -26,11 +25,10 @@ def get_square_obj(square, grid):
     return grid.get_grid()[square[1]][square[0]]
 
 
-def current(square_coords, grid):
-    return grid.get_grid()[square_coords[0]][square_coords[1]]
-
-
 def solve_maze(grid, walls, current_square, goal_square):
+    """using tremaux's algorithm (https://en.wikipedia.org/wiki/Maze_solving_algorithm#Trémaux's_algorithm,
+    https://www.youtube.com/watch?v=6OzpKm4te-E for a more visual explanation)"""
+
     current_node = None
     all_active_nodes = []
     paths_from_nodes = {}
@@ -38,23 +36,11 @@ def solve_maze(grid, walls, current_square, goal_square):
     final_route = [current_square]
     visited_squares = [current_square]
 
-    print("this is a test", current_square, get_square_obj(current_square, grid).get_coords())
-    count = 0
-
-    while current_square != goal_square and count < 100:
-        count += 1
-
-        print(final_route)
+    while current_square != goal_square:
 
         routes_from_current_square = get_all_routes_from_square(current_square, grid, walls)
 
-        for square in visited_squares:
-            if square in routes_from_current_square:
-                routes_from_current_square.remove(square)
-
-        # print("test", current_routes)
         if len(routes_from_current_square) > 1:  # if node
-            # print("hep")
             current_square = choice(routes_from_current_square)
             current_route_after_node.append(current_square)
             final_route.append(current_square)
@@ -70,13 +56,13 @@ def solve_maze(grid, walls, current_square, goal_square):
             final_route.append(current_square)
             current_route_after_node.append(current_square)
 
-        elif len(routes_from_current_square) == 0:  # if dead end
-            # print(current_route_after_node)
+        elif len(routes_from_current_square) == 1:
+            current_square = routes_from_current_square[0]
+            final_route.append(current_square)
 
-            #del(current_route_after_node[0])
+        elif len(routes_from_current_square) == 0:  # if dead end
             for square in current_route_after_node:
                 final_route.remove(square)
-
             while len(paths_from_nodes[current_node]) == 0:
                 all_active_nodes.remove(current_node)
                 current_node = all_active_nodes[-1]
@@ -84,12 +70,16 @@ def solve_maze(grid, walls, current_square, goal_square):
             current_square = choice(paths_from_nodes[current_node])
             paths_from_nodes[current_node].remove(current_square)
 
-            """if len(paths_from_nodes[current_node]) == 0:
-                all_active_nodes.remove(current_node)"""
-
             current_route_after_node = [current_square]
             final_route.append(current_square)
 
         visited_squares.append(current_square)
+
+    """ret = []
+    for square in final_route:
+        if square not in ret:
+            ret.append(square)
+        else:
+            ret.remove(square)"""
 
     return final_route

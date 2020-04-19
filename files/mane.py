@@ -28,13 +28,12 @@ class Mane(QMainWindow):
         self.prev_square = None
 
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
-        #self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
-        self.grid, self.walls, self.msg = read_file("mymaze.txt")
-        self.maze_done = True
-        self._grid_inactive_neighbours = []
+        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+        #self.grid, self.walls, self.msg = read_file("mymaze.txt")
+        #self.maze_done = True
+        #self._grid_inactive_neighbours = []
 
-        self.maze_solved = not self.show_animation
-        self.my_maze_solution = []
+        self.display_solution = False
         self.x_offset = 100
         self.y_offset = 100
         self.x_squares = self.grid.get_width()
@@ -48,6 +47,8 @@ class Mane(QMainWindow):
         self.goal_is_on_square = self.get_goal_square()
         self.player_is_on_ground = True
 
+        self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+        self.points = len(self.my_maze_solution)
         self.InitWindow()
 
     def InitWindow(self):
@@ -169,7 +170,7 @@ class Mane(QMainWindow):
                                                                                                             self.show_animation)
                 self.update()
 
-            if self.maze_solved:
+            if self.display_solution:
                 painter.setPen(Qt.red)
                 try:
                     prev = self.my_maze_solution[0]
@@ -197,6 +198,7 @@ class Mane(QMainWindow):
                 painter.setOpacity(1)
                 painter.setFont(QFont("Times", 75))
                 painter.drawText(150, 270, "You won!")
+                painter.drawText(50, 350, f"Your points: {self.points}")
 
     def get_goal_square(self):
         g = self.grid.get_grid()
@@ -300,20 +302,22 @@ class Mane(QMainWindow):
         self.update()
 
     def solve_my_maze(self):
-        self.maze_solved = True
-        self.my_maze_solution = solve_maze(self.grid, self.walls,
-                                           self.player_is_on_square,
-                                           self.goal_is_on_square)
+        self.display_solution = True
+        self.points = min(self.points, 0)
         self.update()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_W:
+            self.points -= 1
             self.move_up()
         if event.key() == Qt.Key_A:
+            self.points -= 1
             self.move_left()
         if event.key() == Qt.Key_S:
+            self.points -= 1
             self.move_down()
         if event.key() == Qt.Key_D:
+            self.points -= 1
             self.move_right()
         if event.key() == Qt.Key_Space:
             self.jump()
@@ -324,7 +328,6 @@ class Mane(QMainWindow):
             self.update()
         if event.key() == Qt.Key_R:
             fn, bl = QInputDialog.getText(self, "Get text", "Filename:", QLineEdit.Normal)
-            print(fn)
             write_file(self.grid, self.walls, fn + ".txt")
 
     def mousePressEvent(self, event):
