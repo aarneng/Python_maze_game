@@ -13,10 +13,6 @@ from random import randint, choice
 from time import sleep
 
 
-def scale_by(x):
-    return 2 - 1 / (1 + x / 150)
-
-
 class Mane(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -27,6 +23,7 @@ class Mane(QMainWindow):
         self.player_is_on_square = [0, 0]
         self.prev_square = None
 
+        self.msg = ""
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
         self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
         #self.grid, self.walls, self.msg = read_file("mymaze.txt")
@@ -114,9 +111,9 @@ class Mane(QMainWindow):
             painter.drawLine(60, 245, 60, 285)
 
             painter.setPen(Qt.black)
-            painter.drawText(75, 320, "Press 0 if you're stuck. It'll show you what path to take")
+            painter.drawText(75, 320, "Press 0 if you're stuck. It'll show you what path to take :-)")
             painter.setFont(QFont("Times", 10))
-            painter.drawText(75, 340, "(although some might call this cheating!)")
+            painter.drawText(75, 340, "(Although some might call this cheating! This will also reset your points to 0)")
 
             painter.setFont(QFont("Times", 20))
 
@@ -130,9 +127,29 @@ class Mane(QMainWindow):
                 painter.drawText(75, 510, "Press the enter key to remove the maze's animation")
 
             painter.drawText(75, 550, "Left click to start the game")
+            painter.drawText(75, 580, "Press F to read a file of your choice")
+            painter.setFont(QFont("Times", 10))
+            painter.drawText(75, 590, "Make sure you have saved it in the right directory!")
 
         else:
             painter.setPen(Qt.black)
+
+            painter.setFont(QFont("Times", 18))
+            painter.drawText(75, 530, f"Press R at anytime to save your progress onto a file!")
+
+            if self.msg == "":
+                painter.setFont(QFont("Times", 14))
+                painter.drawText(75, 555, f"Current points: {self.points}")
+            else:
+                painter.drawText(75, 550, f"{self.msg}")
+                painter.setFont(QFont("Times", 14))
+                if not self.msg.endswith("Did you type it in correctly?"):
+                    painter.drawText(75, 570, "(Please note that we do not check whether or not "
+                                              "mazes from files are possible to complete)")
+                    painter.drawText(75, 590, f"Current points: {self.points}")
+                else:
+                    painter.drawText(75, 570, f"Current points: {self.points}")
+
             s = self.square_size
             horizontal_walls = self.walls.get_horizontal()
             vertical_walls = self.walls.get_vertical()
@@ -256,7 +273,6 @@ class Mane(QMainWindow):
             return
         self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
         self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-        self.update()
 
     def move_left(self):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
@@ -277,7 +293,6 @@ class Mane(QMainWindow):
             return
         self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
         self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-        self.update()
 
     def move_down(self):
         if self.player_is_on_square[1] > self.grid.get_height() - 2:
@@ -300,7 +315,6 @@ class Mane(QMainWindow):
             return
         self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
         self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-        self.update()
 
     def move_right(self):
         if self.player_is_on_square[0] > self.grid.get_width() - 2:
@@ -324,13 +338,13 @@ class Mane(QMainWindow):
 
         self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
         self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-        self.update()
 
     def jump(self):
         self.player_is_on_ground = not self.player_is_on_ground
         self.update()
 
     def solve_my_maze(self):
+        self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
         self.display_solution = True
         self.points = min(self.points, 0)
         self.update()
@@ -339,15 +353,23 @@ class Mane(QMainWindow):
         if event.key() == Qt.Key_W:
             self.points -= 1
             self.move_up()
+            self.update()
+
         if event.key() == Qt.Key_A:
             self.points -= 1
             self.move_left()
+            self.update()
+
         if event.key() == Qt.Key_S:
             self.points -= 1
             self.move_down()
+            self.update()
+
         if event.key() == Qt.Key_D:
             self.points -= 1
             self.move_right()
+            self.update()
+
         if event.key() == Qt.Key_Space:
             self.jump()
         if event.key() == Qt.Key_0:
@@ -362,8 +384,19 @@ class Mane(QMainWindow):
             self.grid = NewGrid(width=max(self.grid.get_width()-1, 1), height=max(self.grid.get_height()-1, 1))
             self.update()
         if event.key() == Qt.Key_R:
-            fn, bl = QInputDialog.getText(self, "Get text", "Filename:", QLineEdit.Normal)
+            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal)
             write_file(self.grid, self.walls, fn + ".txt")
+        if event.key() == Qt.Key_F:
+            fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:", QLineEdit.Normal, "mymaze.txt")
+            if not fn.endswith(".txt"):
+                fn += ".txt"
+            try:
+                self.grid, self.walls, self.msg = read_file(fn)
+                self.maze_done = True
+                self._grid_inactive_neighbours = []
+            except FileNotFoundError:
+                self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
+            self.update()
 
     def mousePressEvent(self, event):
         self.show_menu = False

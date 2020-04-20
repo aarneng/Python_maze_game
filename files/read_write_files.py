@@ -75,10 +75,10 @@ def read_file(filename):
         # remove walls that are only on ground / ceiling
 
         squares = ret_grid.get_grid()
-        error_message = ""
+        message = f"File {filename} read succesfully!"
         x, y = 0, 0
         checking_vertical = False
-        allowed_chars = ["_", "-", "=", "/", "\\", ";", "0", ".", "\n"]
+        allowed_chars = ["_", "-", "=", "/", "\\", ";", "0", ".", " "]
 
         for line in f:
             for char in line.split("\n")[0]:
@@ -102,7 +102,8 @@ def read_file(filename):
                     ret_grid.make_goal(x, int(y))
                 else:
                     if char not in allowed_chars:
-                        error_message = "File is likely corrupt.\nCompleting the maze might not be possible."
+                        print(char)
+                        message = f"File {filename} is likely corrupt and/or broken."
                     if checking_vertical and x > 0:
                         ret_walls.remove_wall_between(squares[x][int(y)], squares[x - 1][int(y)])
                     elif not checking_vertical and y > 0:
@@ -111,4 +112,4 @@ def read_file(filename):
             x = 0
             checking_vertical = not checking_vertical
             y += 1 / 2
-        return ret_grid, ret_walls, error_message
+        return ret_grid, ret_walls, message
