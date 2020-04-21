@@ -123,6 +123,7 @@ class Mane(QMainWindow):
 
             if not self.show_animation:
                 painter.drawText(75, 480, "Press the enter key to show the maze's animation")
+                painter.drawText(75, 510, "(this might take a while)")
             else:
                 painter.drawText(75, 480, "Animation toggled on!")
                 painter.drawText(75, 510, "Press the enter key to remove the maze's animation")
@@ -163,7 +164,7 @@ class Mane(QMainWindow):
                             painter.drawRect(i * s + 11, j * s + 11, s, s)
                 painter.setPen(QPen(QColor(150, 120, 150), 3, Qt.SolidLine))
                 painter.drawRect(self.the_chosen_one[1] * s + 10, self.the_chosen_one[0] * s + 10, s, s)
-                sleep(0.1)
+                sleep(1 / self.x_squares)
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.white)
 
