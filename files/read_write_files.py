@@ -1,12 +1,10 @@
 from grid2 import NewGrid
 from test_grid import Walls
-from maze import construct_maze
-from square import Square
 
 
 def write_file(grid, walls, filename):
     if filename == ".txt":
-        filename = "mymaze.txt"
+        filename = "mymaze.txt"  # you never know
 
     with open(filename, "w") as f:
         width = grid.get_width()

@@ -16,7 +16,7 @@ from time import sleep
 class Mane(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.test = False
+        # self.test = False
         self.grid = NewGrid(width=10, height=10)
         self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
         self.grid.set_active(0, 0)
@@ -183,10 +183,10 @@ class Mane(QMainWindow):
             painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
 
             self.goal_is_on_square = self.get_goal_square()
-
-            goal_x = self.goal_is_on_square[0]
-            goal_y = self.goal_is_on_square[1]
-            painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
+            if self.goal_is_on_square != [-1, -1]:
+                goal_x = self.goal_is_on_square[0]
+                goal_y = self.goal_is_on_square[1]
+                painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
 
             player_x = self.player_is_on_square[0]
             player_y = self.player_is_on_square[1]
@@ -194,26 +194,27 @@ class Mane(QMainWindow):
             if self.player_is_on_ground:
                 painter.setPen(Qt.yellow)
                 painter.setBrush(Qt.yellow)
-                painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)  # for fitting
+                painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.black)
-                painter.drawEllipse(player_x * s + (s / 1.8), player_y * s + (s / 2.5), s / 6, s / 6)
-                painter.drawEllipse(player_x * s + (s / 1.3), player_y * s + (s / 2.5), s / 6, s / 6)
-                painter.drawArc(player_x * s + (s / 1.7), player_y * s + (s / 1.8), s / 4, s / 6, 180 * 16, 180 * 16)
+                painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
+                painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
+                painter.drawArc(player_x * s + (s / 2.7) + 12, player_y * s + (s / 2) + 12, s / 4, s / 6, 180 * 16, 180 * 16)
             else:
                 painter.setPen(Qt.yellow)
                 painter.setBrush(Qt.yellow)
                 painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.black)
-                painter.drawEllipse(player_x * s + (s / 1.7), player_y * s + (s / 2.5), s / 6, s / 6)
-                painter.drawEllipse(player_x * s + (s / 1.2), player_y * s + (s / 2.5), s / 6, s / 6)
-                painter.drawEllipse(player_x * s + (s / 1.6), player_y * s + (s / 1.5), s / 3.5, s / 5)
+                painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
+                painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
+                painter.drawEllipse(player_x * s + (s / 2.6) + 12, player_y * s + (s / 1.5) + 12, s / 3.5, s / 5)
+
+                # Yes, i should really be working more with percentages here. Yes, the +12 is also
+                # HORRIBLE coding practice. Please forgive me. I'll try to fix this later
             if self.show_animation and not self.maze_done:
-                self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid,
-                                                                                                            self.walls,
-                                                                                                            self._grid_inactive_neighbours,
-                                                                                                            self.show_animation)
+                self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
+                    maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
                 self.update()
 
             if self.display_solution:
@@ -252,7 +253,7 @@ class Mane(QMainWindow):
             for j in range(len(g[i])):
                 if g[i][j].get_goal_status():
                     return [i, j]
-        return [0, 0]  # else
+        return [-1, -1]  # else
 
     def move_up(self):
         square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
@@ -372,20 +373,63 @@ class Mane(QMainWindow):
 
         if event.key() == Qt.Key_Space:
             self.jump()
+
         if event.key() == Qt.Key_0:
             self.solve_my_maze()
+
         if event.key() == Qt.Key_Return:
             self.show_animation = not self.show_animation
+            self.grid = NewGrid(width=self.grid.get_width(), height=self.grid.get_height())
+            self.player_is_on_square = [0, 0]
+            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
+            self.grid.get_square(self.player_is_on_square).set_active()
+            self.prev_square = None
+
+            self.x_squares = self.grid.get_width()
+            self.y_squares = self.grid.get_height()
+            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+
+            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
+                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
+                                    self.player_is_on_square)
             self.update()
+
         if event.key() == Qt.Key_Plus:
-            self.grid = NewGrid(width=self.grid.get_width()+1, height=self.grid.get_height()+1)
+            self.grid = NewGrid(width=min(self.grid.get_width()+1, 150), height=min(self.grid.get_height()+1, 150))
+            self.player_is_on_square = [0, 0]
+            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
+            self.grid.get_square(self.player_is_on_square).set_active()
+            self.prev_square = None
+
+            self.x_squares = self.grid.get_width()
+            self.y_squares = self.grid.get_height()
+            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+
+            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
+                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
             self.update()
+
         if event.key() == Qt.Key_Minus:
-            self.grid = NewGrid(width=max(self.grid.get_width()-1, 1), height=max(self.grid.get_height()-1, 1))
+            self.grid = NewGrid(width=max(self.grid.get_width()-1, 2), height=max(self.grid.get_height()-1, 2))
+            self.player_is_on_square = [0, 0]
+            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
+            self.grid.get_square(self.player_is_on_square).set_active()
+            self.prev_square = None
+
+            self.x_squares = self.grid.get_width()
+            self.y_squares = self.grid.get_height()
+            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+
+            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
+                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
             self.update()
+
         if event.key() == Qt.Key_R:
-            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal)
-            write_file(self.grid, self.walls, fn + ".txt")
+            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal, "mymaze.txt")
+            if not fn.endswith(".txt"):
+                fn += ".txt"
+            write_file(self.grid, self.walls, fn)
+
         if event.key() == Qt.Key_F:
             fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:", QLineEdit.Normal, "mymaze.txt")
             if not fn.endswith(".txt"):
