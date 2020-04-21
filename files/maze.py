@@ -14,10 +14,6 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation, player_s
     the process goes on as long as there are inactive squares.
     """
 
-    maze_ready = False
-    if not inactive_neighbours:
-        maze_ready = True
-
     while inactive_neighbours:  # inactive_neighbours not empty
         new_square = choice(inactive_neighbours)
         inactive_neighbours.remove(new_square)
@@ -32,19 +28,24 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation, player_s
         my_walls.remove_wall_between(new_square, passage_to)
 
         new_inactives = grid.get_inactive_neighbours(c_x, c_y)
-        # new_inactives = grid.get_inactive_neighbours(20, 10)
 
         for neighbor in new_inactives:
             if neighbor not in inactive_neighbours:
                 inactive_neighbours.append(neighbor)
         if show_animation:
-            return grid, my_walls, maze_ready, inactive_neighbours
+            maze_ready = not inactive_neighbours
+            difficulty = 2
+            goal_x = randint(int(grid.get_width() / difficulty), grid.get_width() - 1)
+            goal_y = randint(int(grid.get_height() / difficulty), grid.get_height() - 1)
+            grid.make_goal(goal_x, goal_y)
+            grid.add_player_to_square(player_square[0], player_square[1])
+            return grid, my_walls, maze_ready, inactive_neighbours, new_square.get_coords()
 
+    maze_ready = not inactive_neighbours
     difficulty = 2
     goal_x = randint(int(grid.get_width() / difficulty), grid.get_width() - 1)
     goal_y = randint(int(grid.get_height() / difficulty), grid.get_height() - 1)
     grid.make_goal(goal_x, goal_y)
     grid.add_player_to_square(player_square[0], player_square[1])
-    #print(goal_x, goal_y)
 
-    return grid, my_walls, maze_ready, inactive_neighbours
+    return grid, my_walls, maze_ready, inactive_neighbours, [-100, -100]

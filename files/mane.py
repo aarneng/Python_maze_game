@@ -1,7 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QInputDialog, QLineEdit
 import sys
-from PyQt5.QtGui import QPainter, QBrush, QPen, QFont
+from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QColor
 from PyQt5.QtMultimedia import QSound, QSoundEffect
 from PyQt5.QtCore import Qt, QCoreApplication, QUrl
 from test_grid import Walls
@@ -16,7 +16,6 @@ from time import sleep
 class Mane(QMainWindow):
     def __init__(self):
         super().__init__()
-        # self.test = False
         self.grid = NewGrid(width=10, height=10)
         self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
         self.grid.set_active(0, 0)
@@ -25,7 +24,8 @@ class Mane(QMainWindow):
 
         self.msg = ""
         self.show_animation = False  # Animation will take a long time for big grids, around (30x30 & +) depending on computer
-        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+        self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
+            maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
         #self.grid, self.walls, self.msg = read_file("mymaze.txt")
         #self.maze_done = True
         #self._grid_inactive_neighbours = []
@@ -56,6 +56,7 @@ class Mane(QMainWindow):
     def paintEvent(self, event):
         painter = QPainter(self)
         if self.show_menu:
+            self.maze_done = False
             painter.setFont(QFont("Times", 50))
             painter.drawText(50, 50, "Welcome to my maze!")
 
@@ -151,6 +152,21 @@ class Mane(QMainWindow):
                     painter.drawText(75, 570, f"Current points: {self.points}")
 
             s = self.square_size
+
+            if not self.maze_done:
+                for i in range(len(self.grid.get_grid())):
+                    for j in range(len(self.grid.get_grid()[i])):
+                        if not self.grid.get_grid()[i][j].get_active():
+                            color = QColor(220, 220, 220)
+                            painter.setBrush(color)
+                            painter.setPen(color)
+                            painter.drawRect(i * s + 11, j * s + 11, s, s)
+                painter.setPen(QPen(QColor(150, 120, 150), 3, Qt.SolidLine))
+                painter.drawRect(self.the_chosen_one[1] * s + 10, self.the_chosen_one[0] * s + 10, s, s)
+                sleep(0.1)
+                painter.setPen(Qt.black)
+                painter.setBrush(Qt.white)
+
             horizontal_walls = self.walls.get_horizontal()
             vertical_walls = self.walls.get_vertical()
             for i in range(len(horizontal_walls)):
@@ -180,10 +196,9 @@ class Mane(QMainWindow):
                         else:
                             painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
 
-            painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
-
             self.goal_is_on_square = self.get_goal_square()
             if self.goal_is_on_square != [-1, -1]:
+                painter.setPen(QPen(Qt.red, 2, Qt.SolidLine))
                 goal_x = self.goal_is_on_square[0]
                 goal_y = self.goal_is_on_square[1]
                 painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
@@ -213,7 +228,7 @@ class Mane(QMainWindow):
                 # Yes, i should really be working more with percentages here. Yes, the +12 is also
                 # HORRIBLE coding practice. Please forgive me. I'll try to fix this later
             if self.show_animation and not self.maze_done:
-                self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
+                self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                     maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
                 self.update()
 
@@ -251,7 +266,7 @@ class Mane(QMainWindow):
         g = self.grid.get_grid()
         for i in range(len(g)):
             for j in range(len(g[i])):
-                if g[i][j].get_goal_status():
+                if g[i][j].get_goal_status() and self.maze_done:
                     return [i, j]
         return [-1, -1]  # else
 
@@ -351,6 +366,74 @@ class Mane(QMainWindow):
         self.update()
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return:
+            self.show_animation = not self.show_animation
+            self.grid = NewGrid(width=self.grid.get_width(), height=self.grid.get_height())
+            self.player_is_on_square = [0, 0]
+            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
+            self.grid.get_square(self.player_is_on_square).set_active()
+            self.prev_square = None
+
+            self.x_squares = self.grid.get_width()
+            self.y_squares = self.grid.get_height()
+            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+
+            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
+                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
+                                    self.player_is_on_square)
+            self.update()
+
+        if event.key() == Qt.Key_Plus:
+            self.grid = NewGrid(width=min(self.grid.get_width()+1, 150), height=min(self.grid.get_height()+1, 150))
+            self.player_is_on_square = [0, 0]
+            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
+            self.grid.get_square(self.player_is_on_square).set_active()
+            self.prev_square = None
+
+            self.x_squares = self.grid.get_width()
+            self.y_squares = self.grid.get_height()
+            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+
+            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
+                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+            self.update()
+
+        if event.key() == Qt.Key_Minus:
+            self.grid = NewGrid(width=max(self.grid.get_width()-1, 2), height=max(self.grid.get_height()-1, 2))
+            self.player_is_on_square = [0, 0]
+            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
+            self.grid.get_square(self.player_is_on_square).set_active()
+            self.prev_square = None
+
+            self.x_squares = self.grid.get_width()
+            self.y_squares = self.grid.get_height()
+            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+
+            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
+                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
+            self.update()
+
+        if event.key() == Qt.Key_R:
+            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal, "mymaze.txt")
+            if not fn.endswith(".txt"):
+                fn += ".txt"
+            write_file(self.grid, self.walls, fn)
+
+        if event.key() == Qt.Key_F:
+            fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:", QLineEdit.Normal, "mymaze.txt")
+            if not fn.endswith(".txt"):
+                fn += ".txt"
+            try:
+                self.grid, self.walls, self.msg = read_file(fn)
+                self.maze_done = True
+                self._grid_inactive_neighbours = []
+            except FileNotFoundError:
+                self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
+            self.update()
+
+        if not self.maze_done:
+            return
+
         if event.key() == Qt.Key_W:
             self.points -= 1
             self.move_up()
@@ -376,71 +459,6 @@ class Mane(QMainWindow):
 
         if event.key() == Qt.Key_0:
             self.solve_my_maze()
-
-        if event.key() == Qt.Key_Return:
-            self.show_animation = not self.show_animation
-            self.grid = NewGrid(width=self.grid.get_width(), height=self.grid.get_height())
-            self.player_is_on_square = [0, 0]
-            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
-            self.grid.get_square(self.player_is_on_square).set_active()
-            self.prev_square = None
-
-            self.x_squares = self.grid.get_width()
-            self.y_squares = self.grid.get_height()
-            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
-
-            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
-                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
-                                    self.player_is_on_square)
-            self.update()
-
-        if event.key() == Qt.Key_Plus:
-            self.grid = NewGrid(width=min(self.grid.get_width()+1, 150), height=min(self.grid.get_height()+1, 150))
-            self.player_is_on_square = [0, 0]
-            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
-            self.grid.get_square(self.player_is_on_square).set_active()
-            self.prev_square = None
-
-            self.x_squares = self.grid.get_width()
-            self.y_squares = self.grid.get_height()
-            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
-
-            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
-                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
-            self.update()
-
-        if event.key() == Qt.Key_Minus:
-            self.grid = NewGrid(width=max(self.grid.get_width()-1, 2), height=max(self.grid.get_height()-1, 2))
-            self.player_is_on_square = [0, 0]
-            self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
-            self.grid.get_square(self.player_is_on_square).set_active()
-            self.prev_square = None
-
-            self.x_squares = self.grid.get_width()
-            self.y_squares = self.grid.get_height()
-            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
-
-            self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours = \
-                maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
-            self.update()
-
-        if event.key() == Qt.Key_R:
-            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal, "mymaze.txt")
-            if not fn.endswith(".txt"):
-                fn += ".txt"
-            write_file(self.grid, self.walls, fn)
-
-        if event.key() == Qt.Key_F:
-            fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:", QLineEdit.Normal, "mymaze.txt")
-            if not fn.endswith(".txt"):
-                fn += ".txt"
-            try:
-                self.grid, self.walls, self.msg = read_file(fn)
-                self.maze_done = True
-                self._grid_inactive_neighbours = []
-            except FileNotFoundError:
-                self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
-            self.update()
 
     def mousePressEvent(self, event):
         self.show_menu = False
