@@ -56,7 +56,6 @@ class Mane(QMainWindow):
     def paintEvent(self, event):
         painter = QPainter(self)
         if self.show_menu:
-            self.maze_done = False
             painter.setFont(QFont("Times", 50))
             painter.drawText(50, 50, "Welcome to my maze!")
 
@@ -132,7 +131,6 @@ class Mane(QMainWindow):
             painter.drawText(75, 580, "Press F to read a file of your choice")
             painter.setFont(QFont("Times", 10))
             painter.drawText(75, 590, "Make sure you have saved it in the right directory!")
-
         else:
             painter.setPen(Qt.black)
 
@@ -164,7 +162,7 @@ class Mane(QMainWindow):
                             painter.drawRect(i * s + 11, j * s + 11, s, s)
                 painter.setPen(QPen(QColor(150, 120, 150), 3, Qt.SolidLine))
                 painter.drawRect(self.the_chosen_one[1] * s + 10, self.the_chosen_one[0] * s + 10, s, s)
-                sleep(1 / self.x_squares)
+                sleep(1 / (self.x_squares + self.y_squares))
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.white)
 
@@ -249,7 +247,7 @@ class Mane(QMainWindow):
             if self.player_is_on_square == self.goal_is_on_square:
 
                 explosion = QSoundEffect()
-                explosion.setSource(QUrl("explosion.wav"))
+                explosion.setSource(QUrl("explosion.wav"))  # TODO: fix sound not playing (needs a loop?)
                 explosion.play()
 
                 painter.setOpacity(0.7)
@@ -262,6 +260,14 @@ class Mane(QMainWindow):
                 painter.setFont(QFont("Times", 75))
                 painter.drawText(150, 270, "You won!")
                 painter.drawText(50, 350, f"Your points: {self.points}")
+                if self.points >= 3:
+                    painter.drawText(50, 400, "You are a true master of mazes!")
+                elif self.points >= -3:
+                    painter.drawText(50, 400, "Well done!")
+                elif self.points >= -20:
+                    painter.drawText(50, 400, "Good try!")
+                else:
+                    painter.drawText(50, 400, "Everyone solves mazes at their own pace :)")
 
     def get_goal_square(self):
         g = self.grid.get_grid()
@@ -384,7 +390,7 @@ class Mane(QMainWindow):
                                     self.player_is_on_square)
             self.update()
 
-        if event.key() == Qt.Key_Plus:
+        if event.key() == Qt.Key_Plus and self.show_menu:
             self.grid = NewGrid(width=min(self.grid.get_width()+1, 150), height=min(self.grid.get_height()+1, 150))
             self.player_is_on_square = [0, 0]
             self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
@@ -399,7 +405,7 @@ class Mane(QMainWindow):
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
             self.update()
 
-        if event.key() == Qt.Key_Minus:
+        if event.key() == Qt.Key_Minus and self.show_menu:
             self.grid = NewGrid(width=max(self.grid.get_width()-1, 2), height=max(self.grid.get_height()-1, 2))
             self.player_is_on_square = [0, 0]
             self._grid_inactive_neighbours = self.grid.get_inactive_neighbours(0, 0)
@@ -413,12 +419,6 @@ class Mane(QMainWindow):
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
             self.update()
-
-        if event.key() == Qt.Key_R:
-            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal, "mymaze.txt")
-            if not fn.endswith(".txt"):
-                fn += ".txt"
-            write_file(self.grid, self.walls, fn)
 
         if event.key() == Qt.Key_F:
             fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:", QLineEdit.Normal, "mymaze.txt")
@@ -434,6 +434,12 @@ class Mane(QMainWindow):
 
         if not self.maze_done:
             return
+
+        if event.key() == Qt.Key_R:
+            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal, "mymaze.txt")
+            if not fn.endswith(".txt"):
+                fn += ".txt"
+            write_file(self.grid, self.walls, fn)
 
         if event.key() == Qt.Key_W:
             self.points -= 1
