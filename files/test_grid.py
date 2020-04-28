@@ -47,7 +47,7 @@ class Walls:
             else:
                 walls[self_y][self_x + 1].set_inactive()
 
-    def is_there_wall_between(self, square, other_square):
+    def is_there_wall_between(self, square, other_square, using_coords=False):
         """
 
         :param square:
@@ -56,16 +56,19 @@ class Walls:
         2 if there is a wall but only on the bottom (so player can jump over it)
         3 if there is a wall but only on top, so player can walk under it
         """
-        self_x = square.get_coords()[0]
-        self_y = square.get_coords()[1]
-        other_x = other_square.get_coords()[0]
-        other_y = other_square.get_coords()[1]
-
+        if not using_coords:
+            self_x = square.get_coords()[0]
+            self_y = square.get_coords()[1]
+            other_x = other_square.get_coords()[0]
+            other_y = other_square.get_coords()[1]
+        else:
+            self_x = square[1]
+            self_y = square[0]
+            other_x = other_square[1]
+            other_y = other_square[0]
         if self_x == 0 and other_x > 1:  # so player can't clip through other wall
-            #print("x overflow")
             return True
         if self_y == 0 and other_y > 1:
-            #print("y overflow")
             return True
 
         if self_x - other_x == 0:
@@ -80,6 +83,7 @@ class Walls:
                 return walls[self_y][self_x].get_activity()
             else:
                 return walls[self_y][self_x + 1].get_activity()
+
 
     def get_all_routes_from_square(self, square):
         neighbours = self.grid.get_active_neighbours(square.get_coords()[1], square.get_coords()[0])

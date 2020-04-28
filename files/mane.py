@@ -368,6 +368,7 @@ class Mane(QMainWindow):
 
     def solve_my_maze(self):
         self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+        # to show the solution from the player's square
         self.display_solution = True
         self.points = min(self.points, 0)
         self.update()

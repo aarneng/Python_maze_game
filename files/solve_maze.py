@@ -1,37 +1,46 @@
 from random import choice
 
 
-def get_all_routes_from_square(square, grid, walls):
-    ret = []
-    my_square = grid.get_grid()[square[0]][square[1]]
-    square_up = grid.get_grid()[square[0]][square[1] - 1]
-    if not walls.is_there_wall_between(my_square, square_up):
-        ret.append([square[0], square[1] - 1])
-    square_left = grid.get_grid()[square[0] - 1][square[1]]
-    if not walls.is_there_wall_between(my_square, square_left):
-        ret.append([square[0] - 1, square[1]])
-    if square[1] != grid.get_height() - 1:
-        square_down = grid.get_grid()[square[0]][square[1] + 1]
-        if not walls.is_there_wall_between(my_square, square_down):
-            ret.append([square[0], square[1] + 1])
-    if square[0] != grid.get_width() - 1:
-        square_right = grid.get_grid()[square[0] + 1][square[1]]
-        if not walls.is_there_wall_between(my_square, square_right):
-            ret.append([square[0] + 1, square[1]])
-    return ret
-
-
 def get_square_obj(square, grid):
     return grid.get_grid()[square[1]][square[0]]
+
+
+def get_all_routes_from_square(square, grid, walls):
+    ret = []
+    max_height = grid.get_height() - 1
+    max_width = grid.get_width() - 1
+    other_square = [square[0], square[1] - 1]
+
+    if not walls.is_there_wall_between(square, other_square, using_coords=True):
+        ret.append(other_square)
+
+    if square[1] != max_height:  # to not clip through / cause an error
+        other_square = [square[0], square[1] + 1]  # square below original
+        if not walls.is_there_wall_between(square, other_square, using_coords=True):
+            ret.append(other_square)
+
+    other_square = [square[0] - 1, square[1]]  # square to the left
+    if not walls.is_there_wall_between(square, other_square, using_coords=True):
+        ret.append(other_square)
+
+    if square[0] != max_width:  # to not clip through / cause an error
+        other_square = [square[0] + 1, square[1]]  # square to the right
+        if not walls.is_there_wall_between(square, other_square, using_coords=True):
+            ret.append(other_square)
+
+    return ret
 
 
 def solve_maze(grid, walls, current_square, goal_square):
     """using tremaux's algorithm (https://en.wikipedia.org/wiki/Maze_solving_algorithm#Trémaux's_algorithm,
     https://www.youtube.com/watch?v=6OzpKm4te-E for a more visual explanation)"""
 
+    # def solve -> oikee suunta
     current_node = None
     all_active_nodes = []
-    paths_from_nodes = {}
+    paths_from_nodes = {}  # useless?
+    # leave from currsq and if dead end ret false
+    # recursion?
     current_route_after_node = []
     final_route = [current_square]
     visited_squares = [current_square]
@@ -74,12 +83,4 @@ def solve_maze(grid, walls, current_square, goal_square):
             final_route.append(current_square)
 
         visited_squares.append(current_square)
-
-    """ret = []
-    for square in final_route:
-        if square not in ret:
-            ret.append(square)
-        else:
-            ret.remove(square)"""
-
     return final_route
