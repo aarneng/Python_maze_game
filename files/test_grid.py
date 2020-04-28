@@ -83,8 +83,7 @@ class Walls:
                 return walls[self_y][self_x].get_activity()
             else:
                 return walls[self_y][self_x + 1].get_activity()
-
-
+"""
     def get_all_routes_from_square(self, square):
         neighbours = self.grid.get_active_neighbours(square.get_coords()[1], square.get_coords()[0])
         ret = []
@@ -92,3 +91,4 @@ class Walls:
             if not self.is_there_wall_between(square, neighbour):
                 ret.append(neighbour)
         return ret
+"""

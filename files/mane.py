@@ -248,6 +248,10 @@ class Mane(QMainWindow):
                 self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                     maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation,
                                         self.player_is_on_square)
+                if self.maze_done:
+                    self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square,
+                                                       self.goal_is_on_square)
+                    self.points = len(self.my_maze_solution) + 22
                 self.update()
 
             if self.display_solution:
@@ -431,6 +435,8 @@ class Mane(QMainWindow):
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
                                     self.player_is_on_square)
+            self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+            self.points = len(self.my_maze_solution) + 22
             self.update()
 
         if event.key() == Qt.Key_Minus and self.show_menu:
@@ -447,6 +453,8 @@ class Mane(QMainWindow):
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours,
                                     self.show_animation, self.player_is_on_square)
+            self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+            self.points = len(self.my_maze_solution) + 22
             self.update()
 
         if event.key() == Qt.Key_I and self.show_menu:
@@ -467,6 +475,8 @@ class Mane(QMainWindow):
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
                                     self.player_is_on_square)
+            self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+            self.points = len(self.my_maze_solution) + 22
             self.update()
 
         if event.key() == Qt.Key_U and self.show_menu:
@@ -485,6 +495,8 @@ class Mane(QMainWindow):
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
                                     self.player_is_on_square)
+            self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+            self.points = len(self.my_maze_solution) + 22
             self.update()
 
         if event.key() == Qt.Key_F and self.show_menu:
