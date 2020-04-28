@@ -32,55 +32,32 @@ def get_all_routes_from_square(square, grid, walls):
 
 
 def solve_maze(grid, walls, current_square, goal_square):
-    """using tremaux's algorithm (https://en.wikipedia.org/wiki/Maze_solving_algorithm#Trémaux's_algorithm,
-    https://www.youtube.com/watch?v=6OzpKm4te-E for a more visual explanation)"""
+    def solve(route):
+        neighbours = get_all_routes_from_square(route[-1], grid, walls)
+        # route[-1] is current_square
+        for square in route:
+            if square in neighbours:
+                neighbours.remove(square)
 
-    # def solve -> oikee suunta
-    current_node = None
-    all_active_nodes = []
-    paths_from_nodes = {}  # useless?
-    # leave from currsq and if dead end ret false
-    # recursion?
-    current_route_after_node = []
+        if goal_square in neighbours:
+            route.append(goal_square)
+            return route
+        if len(neighbours) == 0:  # if dead end
+            return False
+        if len(neighbours) == 1:
+            temp = [i for i in route]
+            temp.append(neighbours[0])
+            return solve(temp)
+        else:  # if node
+            for i in range(len(neighbours)):
+                temp = [i for i in route]
+                temp.append(neighbours[i])
+                if not solve(temp):
+                    pass
+                else:
+                    temp = [i for i in route]
+                    temp.append(neighbours[i])
+                    return solve(temp)
     final_route = [current_square]
-    visited_squares = [current_square]
-
-    while current_square != goal_square:
-
-        routes_from_current_square = get_all_routes_from_square(current_square, grid, walls)
-
-        if len(routes_from_current_square) > 1:  # if node
-            current_square = choice(routes_from_current_square)
-            current_route_after_node.append(current_square)
-            final_route.append(current_square)
-            routes_from_current_square.remove(current_square)
-            # remove route to not go there when checking routes from this node
-
-            current_node = get_square_obj(current_square, grid)
-            all_active_nodes.append(current_node)
-            paths_from_nodes[current_node] = routes_from_current_square
-
-        elif len(routes_from_current_square) == 1 and current_node is not None:
-            current_square = routes_from_current_square[0]
-            final_route.append(current_square)
-            current_route_after_node.append(current_square)
-
-        elif len(routes_from_current_square) == 1:
-            current_square = routes_from_current_square[0]
-            final_route.append(current_square)
-
-        elif len(routes_from_current_square) == 0:  # if dead end
-            for square in current_route_after_node:
-                final_route.remove(square)
-            while len(paths_from_nodes[current_node]) == 0:
-                all_active_nodes.remove(current_node)
-                current_node = all_active_nodes[-1]
-
-            current_square = choice(paths_from_nodes[current_node])
-            paths_from_nodes[current_node].remove(current_square)
-
-            current_route_after_node = [current_square]
-            final_route.append(current_square)
-
-        visited_squares.append(current_square)
+    final_route = solve(final_route)
     return final_route

@@ -45,7 +45,9 @@ class Mane(QMainWindow):
         self.player_is_on_ground = True
 
         self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
-        self.points = len(self.my_maze_solution)
+        self.points = len(self.my_maze_solution) + 22
+
+        self.allow_movement = True
         self.InitWindow()
 
     def InitWindow(self):
@@ -245,7 +247,7 @@ class Mane(QMainWindow):
                 painter.setPen(Qt.black)
 
             if self.player_is_on_square == self.goal_is_on_square:
-
+                self.allow_movement = False
                 explosion = QSoundEffect()
                 explosion.setSource(QUrl("explosion.wav"))  # TODO: fix sound not playing (needs a loop?)
                 explosion.play()
@@ -257,17 +259,22 @@ class Mane(QMainWindow):
                     painter.drawEllipse(randint(0, 400), randint(0, 400), s, s)
                 painter.setPen(Qt.black)
                 painter.setOpacity(1)
-                painter.setFont(QFont("Times", 75))
+                painter.setFont(QFont("Times", 65))
                 painter.drawText(150, 270, "You won!")
                 painter.drawText(50, 350, f"Your points: {self.points}")
-                if self.points >= 3:
+                if self.points >= 20:
+                    painter.setFont(QFont("Times", 35))
                     painter.drawText(50, 400, "You are a true master of mazes!")
-                elif self.points >= -3:
+                elif self.points >= 18:
                     painter.drawText(50, 400, "Well done!")
-                elif self.points >= -20:
+                elif self.points >= 0:
                     painter.drawText(50, 400, "Good try!")
                 else:
-                    painter.drawText(50, 400, "Everyone solves mazes at their own pace :)")
+                    if not self.display_solution:
+                        painter.setFont(QFont("Times", 25))
+                        painter.drawText(50, 400, "Everyone solves mazes at their own pace :)")
+                    else:
+                        painter.drawText(50, 400, "I saw you cheating!")
 
     def get_goal_square(self):
         g = self.grid.get_grid()
@@ -374,7 +381,10 @@ class Mane(QMainWindow):
         self.update()
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Return:
+        if not self.allow_movement:
+            return
+
+        if event.key() == Qt.Key_Return and self.show_menu:
             self.show_animation = not self.show_animation
             self.grid = NewGrid(width=self.grid.get_width(), height=self.grid.get_height())
             self.player_is_on_square = [0, 0]
@@ -421,8 +431,9 @@ class Mane(QMainWindow):
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation, self.player_is_on_square)
             self.update()
 
-        if event.key() == Qt.Key_F:
-            fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:", QLineEdit.Normal, "mymaze.txt")
+        if event.key() == Qt.Key_F and self.show_menu:
+            fn, bl = QInputDialog.getText(self, "Which file would you like to read?", "Filename:",
+                                          QLineEdit.Normal, "mymaze.txt")
             if not fn.endswith(".txt"):
                 fn += ".txt"
             try:
@@ -437,7 +448,8 @@ class Mane(QMainWindow):
             return
 
         if event.key() == Qt.Key_R:
-            fn, bl = QInputDialog.getText(self, "Enter filename!", "Filename:", QLineEdit.Normal, "mymaze.txt")
+            fn, bl = QInputDialog.getText(self, "Enter filename under which you want this saved!", "Filename:",
+                                          QLineEdit.Normal, "mymaze.txt")
             if not fn.endswith(".txt"):
                 fn += ".txt"
             write_file(self.grid, self.walls, fn)
@@ -469,6 +481,9 @@ class Mane(QMainWindow):
             self.solve_my_maze()
 
     def mousePressEvent(self, event):
+        if not self.allow_movement:
+            return
+
         self.show_menu = False
         self.update()
 
