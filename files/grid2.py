@@ -2,7 +2,7 @@ from square import Square
 
 
 class NewGrid:
-    def __init__(self, width=20, height=20):
+    def __init__(self, width=10, height=10):
         """ creates a list of size w * h"""
         self.height = height
         self.width = width
@@ -46,12 +46,12 @@ class NewGrid:
             if not i.get_active():
                 n.append(i)
 
-        if x < self.width - 1:
+        if x < self.height - 1:
             i = self.grid[x + 1][y]
             if not i.get_active():
                 n.append(i)
 
-        if y < self.height - 1:
+        if y < self.width - 1:
             i = self.grid[x][y + 1]
             if not i.get_active():
                 n.append(i)
@@ -70,19 +70,19 @@ class NewGrid:
             if i.get_active():
                 n.append(i)
 
-        if x < self.width - 1:
+        if x < self.height - 1:
             i = self.grid[x + 1][y]
             if i.get_active():
                 n.append(i)
 
-        if y < self.height - 1:
+        if y < self.width - 1:
             i = self.grid[x][y + 1]
             if i.get_active():
                 n.append(i)
         return n
 
     def make_goal(self, x, y):
-        self.grid[x][y].set_goal()
+        self.grid[y][x].set_goal()
 
     def add_player_to_square(self, x, y):
         self.grid[x][y].set_player()
