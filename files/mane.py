@@ -48,6 +48,9 @@ class Mane(QMainWindow):
         self.points = len(self.my_maze_solution) + 22
 
         self.allow_movement = True
+        self.answer_animation = False
+        self.count = 0
+        self.all_solution_steps = []
         self.InitWindow()
 
     def InitWindow(self):
@@ -234,6 +237,9 @@ class Mane(QMainWindow):
                 self.update()
 
             if self.display_solution:
+                if self.answer_animation:
+                    self.my_maze_solution = self.all_solution_steps[self.count]
+                    self.count = min(self.count + 1, len(self.all_solution_steps) - 1)
                 painter.setPen(Qt.red)
                 try:
                     prev = self.my_maze_solution[0]
@@ -245,6 +251,7 @@ class Mane(QMainWindow):
                                      square[1] * s + 10 + s / 2)
                     prev = square
                 painter.setPen(Qt.black)
+                #self.update()
 
             if self.player_is_on_square == self.goal_is_on_square:
                 self.allow_movement = False
@@ -267,14 +274,14 @@ class Mane(QMainWindow):
                     painter.drawText(50, 400, "You are a true master of mazes!")
                 elif self.points >= 18:
                     painter.drawText(50, 400, "Well done!")
-                elif self.points >= 0:
+                elif self.points > 0:
                     painter.drawText(50, 400, "Good try!")
                 else:
                     if not self.display_solution:
                         painter.setFont(QFont("Times", 25))
                         painter.drawText(50, 400, "Everyone solves mazes at their own pace :)")
                     else:
-                        painter.drawText(50, 400, "I saw you cheating!")
+                        painter.drawText(50, 400, "I saw you cheat!")
 
     def get_goal_square(self):
         g = self.grid.get_grid()
@@ -374,7 +381,8 @@ class Mane(QMainWindow):
         self.update()
 
     def solve_my_maze(self):
-        self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+        self.my_maze_solution, self.all_solution_steps = solve_maze(self.grid, self.walls,
+                                                                    self.player_is_on_square, self.goal_is_on_square)
         # to show the solution from the player's square
         self.display_solution = True
         self.points = min(self.points, 0)
@@ -477,7 +485,12 @@ class Mane(QMainWindow):
         if event.key() == Qt.Key_Space:
             self.jump()
 
+        if event.key() == Qt.Key_9:
+            self.answer_animation = True
+            self.solve_my_maze()
+
         if event.key() == Qt.Key_0:
+            self.answer_animation = False
             self.solve_my_maze()
 
     def mousePressEvent(self, event):

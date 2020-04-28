@@ -1,6 +1,3 @@
-from random import choice
-
-
 def get_square_obj(square, grid):
     return grid.get_grid()[square[1]][square[0]]
 
@@ -31,8 +28,16 @@ def get_all_routes_from_square(square, grid, walls):
     return ret
 
 
+append_to_all_routes = True
+
+
 def solve_maze(grid, walls, current_square, goal_square):
+    global append_to_all_routes
+    append_to_all_routes = True
+    all_routes = []
+
     def solve(route):
+        global append_to_all_routes
         neighbours = get_all_routes_from_square(route[-1], grid, walls)
         # route[-1] is current_square
         for square in route:
@@ -41,7 +46,11 @@ def solve_maze(grid, walls, current_square, goal_square):
 
         if goal_square in neighbours:
             route.append(goal_square)
+            append_to_all_routes = False
             return route
+
+        all_routes.append(route)
+
         if len(neighbours) == 0:  # if dead end
             return False
         if len(neighbours) == 1:
@@ -60,4 +69,4 @@ def solve_maze(grid, walls, current_square, goal_square):
                     return solve(temp)
     final_route = [current_square]
     final_route = solve(final_route)
-    return final_route
+    return final_route, all_routes
