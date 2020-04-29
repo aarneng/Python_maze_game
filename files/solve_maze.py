@@ -6,12 +6,12 @@ def get_all_routes_from_square(square, grid, walls):
     ret = []
     max_height = grid.get_height() - 1
     max_width = grid.get_width() - 1
-    other_square = [square[0], square[1] - 1]
+    other_square = [square[0], square[1] - 1]  # square above original
 
     if not walls.is_there_wall_between(square, other_square, using_coords=True):
         ret.append(other_square)
 
-    if square[1] != max_height:  # to not clip through / cause an error
+    if not square[1] >= max_height:  # to not clip through / cause an error
         other_square = [square[0], square[1] + 1]  # square below original
         if not walls.is_there_wall_between(square, other_square, using_coords=True):
             ret.append(other_square)
@@ -20,7 +20,7 @@ def get_all_routes_from_square(square, grid, walls):
     if not walls.is_there_wall_between(square, other_square, using_coords=True):
         ret.append(other_square)
 
-    if square[0] != max_width:  # to not clip through / cause an error
+    if not square[0] >= max_width:  # to not clip through / cause an error
         other_square = [square[0] + 1, square[1]]  # square to the right
         if not walls.is_there_wall_between(square, other_square, using_coords=True):
             ret.append(other_square)
@@ -29,6 +29,9 @@ def get_all_routes_from_square(square, grid, walls):
 
 
 def solve_maze(grid, walls, current_square, goal_square):
+    goal_square = goal_square[::-1]
+    current_square = current_square[::-1]
+
     def solve(route):
         neighbours = get_all_routes_from_square(route[-1], grid, walls)
         # route[-1] is current_square
@@ -43,13 +46,12 @@ def solve_maze(grid, walls, current_square, goal_square):
         if len(neighbours) == 0:  # if dead end
             return False
         if len(neighbours) == 1:
-            temp = [i for i in route]
-            temp.append(neighbours[0])
-            return solve(temp)
+            route.append(neighbours[0])
+            return solve(route)
         else:  # if node
             for i in range(len(neighbours)):
                 temp = [i for i in route]
-                temp.append(neighbours[i])
+                temp.append(neighbours[i])  # doesn't work if using route.append
                 ans = solve(temp)
                 if not ans:
                     pass

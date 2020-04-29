@@ -82,7 +82,11 @@ class NewGrid:
         return n
 
     def make_goal(self, x, y):
-        self.grid[y][x].set_goal()
+        try:
+            self.grid[y][x].set_goal()
+        except IndexError:
+            self.grid[x][y].set_goal()
+        # If it works, it's ain't stupid… right?
 
     def add_player_to_square(self, x, y):
         self.grid[x][y].set_player()

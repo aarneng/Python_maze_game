@@ -43,8 +43,8 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation, player_s
 
     maze_ready = not inactive_neighbours
     difficulty = 2
-    goal_x = randint(int(grid.get_width() / difficulty), grid.get_width() - 1)
-    goal_y = randint(int(grid.get_height() / difficulty), grid.get_height() - 1)
+    goal_x = randint(int(grid.get_height() / difficulty), grid.get_height() - 1)
+    goal_y = randint(int(grid.get_width() / difficulty), grid.get_width() - 1)
     grid.make_goal(goal_x, goal_y)
     grid.add_player_to_square(player_square[0], player_square[1])
 

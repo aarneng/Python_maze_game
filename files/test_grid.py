@@ -49,9 +49,9 @@ class Walls:
 
     def is_there_wall_between(self, square, other_square, using_coords=False):
         """
-
-        :param square:
-        :param other_square:
+        :param using_coords: Boolean asking is coordinates or square objects are beign used
+        :param square: square
+        :param other_square: other square
         :return: True if there is wall,
         2 if there is a wall but only on the bottom (so player can jump over it)
         3 if there is a wall but only on top, so player can walk under it
@@ -62,10 +62,10 @@ class Walls:
             other_x = other_square.get_coords()[0]
             other_y = other_square.get_coords()[1]
         else:
-            self_x = square[1]
-            self_y = square[0]
-            other_x = other_square[1]
-            other_y = other_square[0]
+            self_x = square[0]
+            self_y = square[1]
+            other_x = other_square[0]
+            other_y = other_square[1]
         if self_x == 0 and other_x > 1:  # so player can't clip through other wall
             return True
         if self_y == 0 and other_y > 1:
@@ -83,12 +83,3 @@ class Walls:
                 return walls[self_y][self_x].get_activity()
             else:
                 return walls[self_y][self_x + 1].get_activity()
-"""
-    def get_all_routes_from_square(self, square):
-        neighbours = self.grid.get_active_neighbours(square.get_coords()[1], square.get_coords()[0])
-        ret = []
-        for neighbour in neighbours:
-            if not self.is_there_wall_between(square, neighbour):
-                ret.append(neighbour)
-        return ret
-"""
