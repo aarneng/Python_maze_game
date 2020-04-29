@@ -50,12 +50,11 @@ def solve_maze(grid, walls, current_square, goal_square):
             for i in range(len(neighbours)):
                 temp = [i for i in route]
                 temp.append(neighbours[i])
-                if not solve(temp):
+                ans = solve(temp)
+                if not ans:
                     pass
                 else:
-                    temp = [i for i in route]
-                    temp.append(neighbours[i])
-                    return solve(temp)
+                    return ans
     final_route = [current_square]
     final_route = solve(final_route)
     return final_route
