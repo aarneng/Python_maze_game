@@ -49,6 +49,7 @@ class Mane(QMainWindow):
         self.points = len(self.my_maze_solution) + 22
 
         self.allow_movement = True
+        self.file_successful = None
         self.InitWindow()
 
     def InitWindow(self):
@@ -141,6 +142,10 @@ class Mane(QMainWindow):
 
             painter.setFont(QFont("Times", 18))
             painter.drawText(75, 530, f"Press R at anytime to save your progress onto a file!")
+
+            if self.file_successful:
+                painter.setFont(QFont("Times", 10))
+                painter.drawText(75, 540, f"File saved successfully!")
 
             if self.msg == "":
                 painter.setFont(QFont("Times", 14))
@@ -434,7 +439,7 @@ class Mane(QMainWindow):
 
             self.x_squares = self.grid.get_width()
             self.y_squares = self.grid.get_height()
-            self.square_size = max(self.width / self.x_squares, self.height / self.y_squares)
+            self.square_size = min(self.width / self.x_squares, self.height / self.y_squares)
 
             self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                 maze.construct_maze(self.grid, Walls(self.grid), self._grid_inactive_neighbours, self.show_animation,
@@ -523,6 +528,10 @@ class Mane(QMainWindow):
             try:
                 self.grid, self.walls, self.msg = read_file(fn)
                 self.maze_done = True
+
+                self.x_squares = self.grid.get_width()
+                self.y_squares = self.grid.get_height()
+                self.square_size = min(self.width / self.x_squares, self.height / self.y_squares)
                 self._grid_inactive_neighbours = []
             except FileNotFoundError:
                 self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
@@ -536,7 +545,7 @@ class Mane(QMainWindow):
                                           QLineEdit.Normal, "mymaze.txt")
             if not fn.endswith(".txt"):
                 fn += ".txt"
-            write_file(self.grid, self.walls, fn)
+            self.file_successful = write_file(self.grid, self.walls, fn)
 
         if event.key() == Qt.Key_W:
             self.points -= 1

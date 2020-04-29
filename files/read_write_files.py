@@ -16,10 +16,10 @@ def write_file(grid, walls, filename):
         grd = grid.get_grid()
         goal_found = False
 
-        for i in range(height + 1):
+        for i in range(width):
             # the + 1 in height and width are because the vert. 2d array of walls
             # is of size (w + 1 * h) and hor. arr is (w * h + 1)
-            for j in range(width):
+            for j in range(height):
                 if vertical[j][i].get_activity() == 2:  # ground wall
                     f.write("-")
                 elif vertical[j][i].get_activity() == 3:  # ceiling wall
@@ -30,9 +30,8 @@ def write_file(grid, walls, filename):
                     f.write(" ")
             f.write("\n")
 
-            for j in range(width + 1):
-                if i >= height:
-                    break
+            for j in range(height + 1):
+
                 if horizontal[j][i].get_activity() == 2:  # ground wall
                     f.write("\\")
                 elif horizontal[j][i].get_activity() == 3:  # ceiling wall
@@ -41,15 +40,16 @@ def write_file(grid, walls, filename):
                     f.write("/")
                 else:
                     f.write(" ")
-                if grd[min(width - 1, j)][min(height - 1, i)].get_goal_status() and not goal_found:
+                if grd[min(height - 1, j)][min(width - 1, i)].get_goal_status() and not goal_found:
                     # grid size is only of size w * h
                     j -= 1
                     f.write("0")
                     goal_found = True
-                if grd[min(width - 1, j)][min(height - 1, i)].get_player_status():
+                if grd[min(height - 1, j)][min(width - 1, i)].get_player_status():
                     j -= 1
                     f.write(".")
             f.write("\n")
+    return True
 
 
 def read_file(filename):
