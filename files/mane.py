@@ -50,10 +50,18 @@ class Mane(QMainWindow):
 
         self.allow_movement = True
         self.file_successful = None
+
+        self.challenge_mode = False
+        self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]]
+        self.player_is_dead = False
+
         self.InitWindow()
 
     def InitWindow(self):
         self.setWindowTitle("Labyrinth Y2")
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)  # make background white(er)
         self.setGeometry(self.x_offset, self.y_offset, self.width + 100, self.height + 100)
         self.show()
 
@@ -162,6 +170,36 @@ class Mane(QMainWindow):
 
             s = self.square_size
 
+            if self.challenge_mode and self.maze_done:
+                if any(self.player_is_on_square == i[::-1] for i in self.zombie_positions):
+                    painter.setFont(QFont("Times", 34))
+                    painter.drawText(50, 300, "you died!")
+                    self.player_is_dead = True
+                else:
+                    def draw_zombie(paintr, pos):
+                        painter.setBrush(Qt.green)
+                        painter.setPen(Qt.black)
+                        paintr.drawEllipse(pos[1] * s + 12, pos[0] * s + 12,s / 1.2, s / 1.2)
+                        painter.setBrush(Qt.black)
+                        painter.drawEllipse(pos[1] * s + 12, pos[0] * s + (s / 3.5) + 12, s / 5, s / 5)
+                        painter.drawEllipse(pos[1] * s + (s / 3.5) + 12, pos[0] * s + (s / 3.5) + 12, s / 5, s / 5)
+                        painter.drawLine(12 + pos[1] * s + s/4, 12 + pos[0] * s + s/3, 12 + pos[1] * s + s/2.5, 12 + pos[0] * s + s/6)
+                        painter.drawLine(12 + pos[1] * s + s/10, 12 + pos[0] * s + s/6, 12 + pos[1] * s + s/4.5, 12 + pos[0] * s + s/3)
+                        painter.setPen(Qt.white)
+                        painter.setBrush(Qt.white)
+                        painter.drawEllipse(pos[1] * s + 12, pos[0] * s + (s / 1.7) + 12, s / 3, s / 4)
+                        painter.setPen(Qt.black)
+                        painter.drawLine(pos[1] * s + 12 + s/20, pos[0] * s + (s / 1.7) + 12 + s/20, pos[1] * s + 12 + s/10, pos[0] * s + (s / 1.7) + 12 + s / 10)
+                        painter.drawLine(pos[1] * s + 12 + s/10, pos[0] * s + (s / 1.7) + 12 + s / 10, pos[1] * s + 12 + s/8, pos[0] * s + (s / 1.7) + 12)
+
+                    for i in range(len(self.zombie_positions)):
+                        draw_zombie(painter, self.zombie_positions[i])
+
+                    #print(self.player_is_on_square)
+                    self.zombie_positions = [solve_maze(self.grid, self.walls, self.zombie_positions[i][::-1], self.player_is_on_square)[1] for i in range(len(self.zombie_positions))]
+                    painter.setBrush(Qt.white)
+                    painter.setPen(Qt.black)
+
             if not self.maze_done:
                 for i in range(len(self.grid.get_grid())):
                     for j in range(len(self.grid.get_grid()[i])):
@@ -227,28 +265,37 @@ class Mane(QMainWindow):
             player_x = self.player_is_on_square[0]
             player_y = self.player_is_on_square[1]
 
-            if self.player_is_on_ground:
-                painter.setPen(Qt.yellow)
-                painter.setBrush(Qt.yellow)
+            if not self.player_is_dead:
+                if self.player_is_on_ground:
+                    painter.setPen(Qt.yellow)
+                    painter.setBrush(Qt.yellow)
+                    painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)
+                    painter.setPen(Qt.black)
+                    painter.setBrush(Qt.black)
+                    painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
+                    painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
+                    painter.drawArc(player_x * s + (s / 2.7) + 12, player_y * s + (s / 2) + 12,
+                                    s / 4, s / 6, 180 * 16, 180 * 16)
+                else:
+                    painter.setPen(Qt.yellow)
+                    painter.setBrush(Qt.yellow)
+                    painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
+                    painter.setPen(Qt.black)
+                    painter.setBrush(Qt.black)
+                    painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
+                    painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
+                    painter.drawEllipse(player_x * s + (s / 2.6) + 12, player_y * s + (s / 1.5) + 12, s / 3.5, s / 5)
+            else:
+                painter.setPen(QColor(150, 190, 50))
+                painter.setBrush(QColor(150, 190, 50))
                 painter.drawEllipse(player_x * s + 12, player_y * s + 12, s / 1.2, s / 1.2)
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.black)
                 painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
                 painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
-                painter.drawArc(player_x * s + (s / 2.7) + 12, player_y * s + (s / 2) + 12, s / 4, s / 6, 180 * 16,
-                                180 * 16)
-            else:
-                painter.setPen(Qt.yellow)
-                painter.setBrush(Qt.yellow)
-                painter.drawEllipse(player_x * s + 12, player_y * s + 12, s, s)
-                painter.setPen(Qt.black)
-                painter.setBrush(Qt.black)
-                painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
-                painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
-                painter.drawEllipse(player_x * s + (s / 2.6) + 12, player_y * s + (s / 1.5) + 12, s / 3.5, s / 5)
-
-                # Yes, i should really be working more with percentages here. Yes, the +12 is also
-                # HORRIBLE coding practice. Please forgive me. I'll try to fix this later
+                painter.drawArc(player_x * s + (s / 2.7) + 12, player_y * s + (s / 2) + 12,  s / 4, s / 6, 0, 180 * 16)
+            # Yes, i should really be working more with percentages here. Yes, the +12 is also
+            # HORRIBLE coding practice. Please forgive me. I'll try to fix this later
             if self.show_animation and not self.maze_done:
                 self.grid, self.walls, self.maze_done, self._grid_inactive_neighbours, self.the_chosen_one = \
                     maze.construct_maze(self.grid, self.walls, self._grid_inactive_neighbours, self.show_animation,
@@ -408,7 +455,7 @@ class Mane(QMainWindow):
         self.update()
 
     def keyPressEvent(self, event):
-        if not self.allow_movement:
+        if not self.allow_movement or self.player_is_dead:
             return
 
         if event.key() == Qt.Key_Return and self.show_menu:
@@ -533,9 +580,17 @@ class Mane(QMainWindow):
                 self.y_squares = self.grid.get_height()
                 self.square_size = min(self.width / self.x_squares, self.height / self.y_squares)
                 self._grid_inactive_neighbours = []
+                self.goal_is_on_square = self.get_goal_square()
+
+                self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+                self.points = len(self.my_maze_solution) + 22
+
             except FileNotFoundError:
                 self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
             self.update()
+
+        if event.key() == Qt.Key_C and self.show_menu:
+            self.challenge_mode = not self.challenge_mode
 
         if not self.maze_done:
             return
