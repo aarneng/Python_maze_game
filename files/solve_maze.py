@@ -28,16 +28,16 @@ def get_all_routes_from_square(square, grid, walls):
     return ret
 
 
-
-
-
-def solve_maze(grid, walls, current_squar, goal_squar):
+def solve_maze(grid, walls, current_squar, goal_squar, show_all=False):
     goal_square = [i for i in goal_squar[::-1]]
     current_square = [i for i in current_squar[::-1]]
+    all_routes = []
 
-    def solve(route):
+    def solve(route, show=False):
         neighbours = get_all_routes_from_square(route[-1], grid, walls)
         # route[-1] is current_square
+        if show:
+            all_routes.append(route)
         for square in route:
             if square in neighbours:
                 neighbours.remove(square)
@@ -50,16 +50,16 @@ def solve_maze(grid, walls, current_squar, goal_squar):
             return False
         if len(neighbours) == 1:
             route.append(neighbours[0])
-            return solve(route)
+            return solve(route, show=show)
         else:  # if node
             for i in range(len(neighbours)):
                 temp = [i for i in route]
                 temp.append(neighbours[i])  # doesn't work if using route.append
-                ans = solve(temp)
+                ans = solve(temp, show=show)
                 if not ans:
                     pass
                 else:
                     return ans
     final_route = [current_square]
-    final_route = solve(final_route)
-    return final_route
+    final_route = solve(final_route, show=show_all)
+    return final_route, all_routes

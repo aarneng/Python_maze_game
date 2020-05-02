@@ -49,7 +49,8 @@ class Mane(QMainWindow):
         self.goal_is_on_square = self.get_goal_square()
         self.player_is_on_ground = True
 
-        self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+        self.my_maze_solution, self.all_answer_routes = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+        self.count = 0
         self.points = len(self.my_maze_solution) + 22
 
         self.allow_movement = True
@@ -70,7 +71,7 @@ class Mane(QMainWindow):
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)  # make background white(er)
-        self.setGeometry(self.x_offset, self.y_offset, self.width + 100, self.height + 100)
+        self.setGeometry(self.x_offset, self.y_offset, self.width + 100, self.height + 150)
         self.show()
 
     def paintEvent(self, event):
@@ -133,34 +134,35 @@ class Mane(QMainWindow):
 
             painter.setPen(Qt.black)
             painter.drawText(75, 320, "Press 0 if you're stuck. It'll show you what path to take :-)")
+            painter.drawText(75, 360, "Alternatively, press 9 if you want to see how the path is found!")
             painter.setFont(QFont("Times", 10))
-            painter.drawText(75, 340, "(Although some might call this cheating! This will also reset your points to 0)")
+            painter.drawText(75, 380, "(Although some might call this cheating! This will also reset your points to 0)")
 
             painter.setPen(Qt.red)
             painter.setFont(QFont("Times", 20))
 
             if not self.challenge_mode:
-                painter.drawText(75, 370, "Press 'C' to play in challenge mode!! (Includes zombies)")
+                painter.drawText(75, 410, "Press 'C' to play in challenge mode!! (Includes zombies)")
             else:
-                painter.drawText(75, 370, "Scared? Press 'C' again to not play in challenge mode :-)")
+                painter.drawText(75, 410, "Scared? Press 'C' again to not play in challenge mode :-)")
 
             painter.setPen(Qt.black)
 
-            painter.drawText(75, 400, f"Maze size is currently {self.grid.get_width()} by {self.grid.get_height()}.")
-            painter.drawText(75, 430, "Press the + and - buttons to change the size,")
-            painter.drawText(75, 450, "or press I for a custom input and U for a random input")
+            painter.drawText(75, 440, f"Maze size is currently {self.grid.get_width()} by {self.grid.get_height()}.")
+            painter.drawText(75, 470, "Press the + and - buttons to change the size,")
+            painter.drawText(75, 490, "or press I for a custom input and U for a random input")
 
             if not self.show_animation:
-                painter.drawText(75, 480, "Press the enter key to show the maze's animation")
-                painter.drawText(75, 510, "(this might take a while)")
+                painter.drawText(75, 520, "Press the enter key to show the maze's animation")
+                painter.drawText(75, 550, "(this might take a while)")
             else:
-                painter.drawText(75, 480, "Animation toggled on!")
-                painter.drawText(75, 510, "Press the enter key to remove the maze's animation")
+                painter.drawText(75, 520, "Animation toggled on!")
+                painter.drawText(75, 550, "Press the enter key to remove the maze's animation")
 
-            painter.drawText(75, 550, "Left click to start the game")
-            painter.drawText(75, 580, "Press F to read a file of your choice")
+            painter.drawText(75, 590, "Left click to start the game")
+            painter.drawText(75, 620, "Press F to read a file of your choice")
             painter.setFont(QFont("Times", 10))
-            painter.drawText(75, 590, "Make sure you have saved it in the right directory!")
+            painter.drawText(75, 630, "Make sure you have saved it in the right directory!")
         else:
             painter.setPen(Qt.black)
 
@@ -190,7 +192,7 @@ class Mane(QMainWindow):
             s = self.square_size
 
             if self.challenge_mode and self.maze_done:
-                if any(self.player_is_on_square == i for i in self.zombie_positions + self.previous_zombie_positions):
+                if any(self.player_is_on_square == i for i in self.zombie_positions) or any(self.player_is_on_square == i for i in self.previous_zombie_positions):
                     painter.setFont(QFont("Times", 34))
                     painter.drawText(50, 300, "you died!")
                     self.player_is_dead = True
@@ -214,7 +216,13 @@ class Mane(QMainWindow):
                     for i in range(len(self.zombie_positions)):
                         draw_zombie(painter, self.zombie_positions[i])
                     self.previous_zombie_positions = self.zombie_positions
-                    self.zombie_positions = [solve_maze(self.grid, self.walls, i, self.player_is_on_square)[1][::-1] for i in self.zombie_positions]
+
+                    def get_next_zombie_square(current_square):
+                        ret, ignore = solve_maze(self.grid, self.walls, current_square, self.player_is_on_square)
+                        return ret[1][::-1]
+
+                    self.zombie_positions = [get_next_zombie_square(i) for i in self.zombie_positions]
+
                     painter.setBrush(Qt.white)
                     painter.setPen(Qt.black)
 
@@ -348,15 +356,20 @@ class Mane(QMainWindow):
                 self.update()
 
             if self.display_solution:
+                def draw_solution(route):
+                    prev = route[0]
+                    for square in route:
+                        painter.drawLine(prev[1] * s + 10 + s / 2, prev[0] * s + 10 + s / 2, square[1] * s + 10 + s / 2,
+                                         square[0] * s + 10 + s / 2)
+                        prev = square
+
                 painter.setPen(Qt.red)
-                try:
-                    prev = self.my_maze_solution[0]
-                except IndexError:
-                    prev = [0, 0]  # just in case
-                for square in self.my_maze_solution:
-                    painter.drawLine(prev[1] * s + 10 + s / 2, prev[0] * s + 10 + s / 2, square[1] * s + 10 + s / 2,
-                                     square[0] * s + 10 + s / 2)
-                    prev = square
+                if len(self.all_answer_routes) > self.count + 1:
+                    draw_solution(self.all_answer_routes[self.count])
+                    self.count += 1
+                    self.update()
+                else:
+                    draw_solution(self.my_maze_solution)
                 painter.setPen(Qt.black)
 
             if self.player_is_on_square == self.goal_is_on_square:
@@ -498,8 +511,9 @@ class Mane(QMainWindow):
         self.player_is_on_ground = not self.player_is_on_ground
         self.update()
 
-    def solve_my_maze(self):
-        self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+    def solve_my_maze(self, show_all=False):
+        self.my_maze_solution, self.all_answer_routes = solve_maze(self.grid, self.walls, self.player_is_on_square,
+                                           self.goal_is_on_square, show_all=show_all)
         # to show the solution from the player's square
         self.display_solution = True
         self.points = min(self.points, 0)
@@ -724,6 +738,15 @@ class Mane(QMainWindow):
                 fn += ".txt"
             self.file_successful = write_file(self.grid, self.walls, fn)
 
+        if event.key() == Qt.Key_9:
+            self.solve_my_maze(show_all=True)
+
+        if event.key() == Qt.Key_0 and not self.challenge_mode:
+            self.solve_my_maze()
+
+        if self.all_answer_routes and self.count + 1 != len(self.all_answer_routes):
+            return
+
         if event.key() == Qt.Key_W:
             self.points -= 1
             self.move_up()
@@ -746,12 +769,6 @@ class Mane(QMainWindow):
 
         if event.key() == Qt.Key_Space:
             self.jump()
-
-        """if event.key() == Qt.Key_9:
-            self.solve_my_maze()"""
-
-        if event.key() == Qt.Key_0 and not self.challenge_mode:
-            self.solve_my_maze()
 
     def mousePressEvent(self, event):
         if not self.allow_movement:
