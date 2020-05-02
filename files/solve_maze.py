@@ -28,9 +28,12 @@ def get_all_routes_from_square(square, grid, walls):
     return ret
 
 
-def solve_maze(grid, walls, current_square, goal_square):
-    goal_square = goal_square[::-1]
-    current_square = current_square[::-1]
+
+
+
+def solve_maze(grid, walls, current_squar, goal_squar):
+    goal_square = [i for i in goal_squar[::-1]]
+    current_square = [i for i in current_squar[::-1]]
 
     def solve(route):
         neighbours = get_all_routes_from_square(route[-1], grid, walls)

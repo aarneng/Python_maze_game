@@ -2,12 +2,12 @@ from wall import Wall
 
 
 class Walls:
-    def __init__(self, grid):
+    def __init__(self, grid, wall_inverse_ratio=10):
         self.width = grid.get_width()
         self.height = grid.get_height()
         self.grid = grid
-        self.vertical_walls = [[Wall(0, [i, j]) for i in range(self.width + 1)] for j in range(self.height)]
-        self.horizontal_walls = [[Wall(1, [i, j]) for i in range(self.width)] for j in range(self.height + 1)]
+        self.vertical_walls = [[Wall(0, [i, j], wall_inverse_ratio) for i in range(self.width + 1)] for j in range(self.height)]
+        self.horizontal_walls = [[Wall(1, [i, j], wall_inverse_ratio) for i in range(self.width)] for j in range(self.height + 1)]
 
     def get_wall(self):
         for walls in self.vertical_walls:
