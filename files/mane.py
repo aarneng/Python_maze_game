@@ -621,9 +621,9 @@ class Mane(QMainWindow):
             self.update()
 
         if event.key() == Qt.Key_I and self.show_menu:
-            width, bl = QInputDialog.getInt(self, "How big do you want your grid to be?", "length:", 10)
+            width, bl = QInputDialog.getInt(self, "How big do you want your grid to be?", "Height:", 10)
             width = min(max(width, 2), 150)
-            height, bl = QInputDialog.getInt(self, "How big do you want your grid to be?", "width:", 10)
+            height, bl = QInputDialog.getInt(self, "How big do you want your grid to be?", "Width:", 10)
             height = min(max(height, 2), 150)
             self.grid = NewGrid(width=width, height=height)
             self.player_is_on_square = [0, 0]
