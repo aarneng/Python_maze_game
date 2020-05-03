@@ -2,8 +2,7 @@ from random import randint
 
 
 class Wall:
-    def __init__(self, coords, orientation, ratio):
-        self.coords = coords
+    def __init__(self, orientation, ratio):
         self.orientation = orientation  # 0 = vertical, 1 = horizontal
         self.active = True if not (randint(0, ratio) == 0) else randint(2, 3)
         # a wall defaults to a value of either True, 2 or 3.

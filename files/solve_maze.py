@@ -1,7 +1,3 @@
-def get_square_obj(square, grid):
-    return grid.get_grid()[square[1]][square[0]]
-
-
 def get_all_routes_from_square(square, grid, walls):
     ret = []
     max_height = grid.get_height() - 1
@@ -29,6 +25,15 @@ def get_all_routes_from_square(square, grid, walls):
 
 
 def solve_maze(grid, walls, current_squar, goal_squar, show_all=False):
+    """
+    using recursive search, find the goal
+    :param grid: grid object
+    :param walls: walls at grid
+    :param current_squar: square from which to start search
+    :param goal_squar: square upon which we want to end up on
+    :param show_all: save all the routes to show the animation of the search algorithm
+    :return: the route to take to the goal, all routes that were tested if show_all
+    """
     goal_square = [i for i in goal_squar[::-1]]
     current_square = [i for i in current_squar[::-1]]
     all_routes = []
@@ -40,7 +45,7 @@ def solve_maze(grid, walls, current_squar, goal_squar, show_all=False):
             all_routes.append(route)
             # Professor: Noooo you can't just save all the paths and call that an animation
             # Think of the of the memory!!
-            # me: haha saving paths to show an animation goes brrr
+            # me: haha saving all paths to show an animation goes brrr
         for square in route:
             if square in neighbours:
                 neighbours.remove(square)

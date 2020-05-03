@@ -36,7 +36,7 @@ class NewGrid:
     def get_inactive_neighbours(self, x, y):
         x, y = y, x
         n = []
-        if x > 0:
+        if x > 0:  # avoid IndexErrors
             i = self.grid[x - 1][y]
             if not i.get_active():
                 n.append(i)

@@ -1,16 +1,14 @@
-from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QInputDialog, QLineEdit
 import sys
-from PyQt5.QtGui import QPainter, QBrush, QPen, QFont, QColor
-from PyQt5.QtMultimedia import QSound, QSoundEffect
-from PyQt5.QtCore import Qt, QCoreApplication, QUrl
+from PyQt5.QtGui import QPainter, QPen, QFont, QColor
+from PyQt5.QtMultimedia import QSoundEffect
+from PyQt5.QtCore import Qt, QUrl
 from test_grid import Walls
 from grid2 import NewGrid
 import maze
 from solve_maze import solve_maze
 from read_write_files import write_file, read_file
 from random import randint, choice
-from time import sleep
 
 
 class Mane(QMainWindow):
@@ -181,8 +179,8 @@ class Mane(QMainWindow):
                     painter.drawText(75, 550, f"{self.msg}")
                     painter.setFont(QFont("Times", 14))
                     if not self.msg.endswith("Did you type it in correctly?"):
-                        painter.drawText(75, 570, "(Please note that we do not check whether or not "
-                                                  "mazes from files are possible to complete)")
+                        #painter.drawText(75, 570, "(Please note that we do not check whether or not "
+                        #                          "mazes from files are possible to complete)")
                         painter.drawText(75, 590, f"Current points: {self.points}")
                     else:
                         painter.drawText(75, 570, f"Current points: {self.points}")
@@ -255,7 +253,7 @@ class Mane(QMainWindow):
                             painter.drawRect(i * s + 11, j * s + 11, s, s)
                 painter.setPen(QPen(QColor(150, 120, 150), 3, Qt.SolidLine))
                 painter.drawRect(self.the_chosen_one[1] * s + 10, self.the_chosen_one[0] * s + 10, s, s)
-                sleep(1 / (self.x_squares + self.y_squares))
+                # sleep(1 / (self.x_squares + self.y_squares))
                 painter.setPen(Qt.black)
                 painter.setBrush(Qt.white)
 
@@ -416,6 +414,14 @@ class Mane(QMainWindow):
                     return [i, j]
         return [-1, -1]  # else
 
+    def get_player_square(self):
+        g = self.grid.get_grid()
+        for i in range(len(g)):
+            for j in range(len(g[i])):
+                if g[i][j].get_player_status() and self.maze_done:
+                    return [i, j]
+        return [-1, -1]  # else
+
     def move_up(self):
         if self.player_is_on_square[1] == 0:  # sometimes the player was able to glitch through otherwise
             return
@@ -518,6 +524,8 @@ class Mane(QMainWindow):
     def solve_my_maze(self, show_all=False):
         self.my_maze_solution, self.all_answer_routes = solve_maze(self.grid, self.walls, self.player_is_on_square,
                                            self.goal_is_on_square, show_all=show_all)
+        if not self.my_maze_solution:
+            return
         # to show the solution from the player's square
         self.display_solution = True
         self.points = min(self.points, 0)
@@ -703,7 +711,8 @@ class Mane(QMainWindow):
             if not fn.endswith(".txt"):
                 fn += ".txt"
             try:
-                self.grid, self.walls, self.msg = read_file(fn)
+                self.challenge_mode = False
+                self.grid, self.walls, self.msg, self.points = read_file(fn)
                 self.maze_done = True
 
                 self.x_squares = self.grid.get_width()
@@ -711,12 +720,24 @@ class Mane(QMainWindow):
                 self.square_size = min(self.width / self.x_squares, self.height / self.y_squares)
                 self._grid_inactive_neighbours = []
                 self.goal_is_on_square = self.get_goal_square()
+                self.player_is_on_square = self.get_player_square()
+                if self.player_is_on_square == [-1, -1]:
+                    self.player_is_on_square = [0, 0]
+                if self.goal_is_on_square == [-1, -1]:
+                    self.grid.make_goal(randint(int(self.y_squares / 2), self.y_squares - 1), randint(int(self.x_squares / 2), self.x_squares - 1))
+                    self.goal_is_on_square = self.get_goal_square()
 
-                self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
-                self.points = len(self.my_maze_solution) + 22
-
+                self.my_maze_solution, self.all_answer_routes = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
+                if self.my_maze_solution is not False:
+                    pass
+                else:
+                    raise IndexError  # for lack of a better error type
+                self.show_menu = False
+                self.update()
             except FileNotFoundError:
                 self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
+            except IndexError:
+                self.msg = f"File < {fn} > is not possible to be solved!"
             self.update()
 
         if event.key() == Qt.Key_C and self.show_menu:
@@ -740,7 +761,7 @@ class Mane(QMainWindow):
                                           QLineEdit.Normal, "mymaze.txt")
             if not fn.endswith(".txt"):
                 fn += ".txt"
-            self.file_successful = write_file(self.grid, self.walls, fn)
+            self.file_successful = write_file(self.grid, self.walls, fn, self.points)
 
         if event.key() == Qt.Key_9 and not self.challenge_mode:
             self.solve_my_maze(show_all=True)
@@ -749,6 +770,9 @@ class Mane(QMainWindow):
             self.solve_my_maze()
 
         if self.all_answer_routes and self.count + 1 != len(self.all_answer_routes):
+            return
+
+        if self.show_menu:
             return
 
         if event.key() == Qt.Key_W:

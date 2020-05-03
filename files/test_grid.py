@@ -6,21 +6,8 @@ class Walls:
         self.width = grid.get_width()
         self.height = grid.get_height()
         self.grid = grid
-        self.vertical_walls = [[Wall(0, [i, j], wall_inverse_ratio) for i in range(self.width + 1)] for j in range(self.height)]
-        self.horizontal_walls = [[Wall(1, [i, j], wall_inverse_ratio) for i in range(self.width)] for j in range(self.height + 1)]
-
-    def get_wall(self):
-        for walls in self.vertical_walls:
-            for wall in walls:
-                if wall.get_activity() is None:
-                    return wall
-        # if no vertical wall try horizontal wall
-        for walls in self.horizontal_walls:
-            for wall in walls:
-                if wall.get_activity() is None:
-                    return wall
-        # else
-        return False
+        self.vertical_walls = [[Wall(0, wall_inverse_ratio) for i in range(self.width + 1)] for j in range(self.height)]
+        self.horizontal_walls = [[Wall(1, wall_inverse_ratio) for i in range(self.width)] for j in range(self.height + 1)]
 
     def get_horizontal(self):
         return self.horizontal_walls

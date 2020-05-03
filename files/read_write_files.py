@@ -2,14 +2,14 @@ from grid2 import NewGrid
 from test_grid import Walls
 
 
-def write_file(grid, walls, filename):
+def write_file(grid, walls, filename, points):
     if filename == ".txt":
         filename = "mymaze.txt"  # you never know
 
     with open(filename, "w") as f:
         width = grid.get_width()
         height = grid.get_height()
-        f.write(str(width) + " " + str(height) + "\n")
+        f.write(str(width) + " " + str(height) + " " + str(points) + "\n")
 
         vertical = walls.get_vertical()
         horizontal = walls.get_horizontal()
@@ -41,6 +41,7 @@ def write_file(grid, walls, filename):
                 else:
                     f.write(" ")
                 if grd[min(height - 1, j)][min(width - 1, i)].get_goal_status() and not goal_found:
+                    # to avoid IndexError
                     # grid size is only of size w * h
                     j -= 1
                     f.write("0")
@@ -59,6 +60,7 @@ def read_file(filename):
             dimensions = f.readline()
         dimensions = dimensions.split("\n")[0].split(" ")
         width, height = int(dimensions[0]), int(dimensions[1])
+        points = int(dimensions[2])
 
         ret_grid = NewGrid(width=width, height=height)
         ret_walls = Walls(ret_grid)
@@ -70,7 +72,7 @@ def read_file(filename):
         for walls in horizontal_walls:
             for wall in walls:
                 wall.set_active()
-        # remove walls that are only on ground / ceiling
+        # reset walls so that there are no walls that are only on ground / ceiling
 
         squares = ret_grid.get_grid()
         message = f"File {filename} read succesfully!"
@@ -100,7 +102,6 @@ def read_file(filename):
                     ret_grid.make_goal(x, int(y))
                 else:
                     if char not in allowed_chars:
-                        print(char)
                         message = f"File {filename} is likely corrupt and/or broken."
                     if checking_vertical and x > 0:
                         ret_walls.remove_wall_between(squares[x][int(y)], squares[x - 1][int(y)])
@@ -110,4 +111,4 @@ def read_file(filename):
             x = 0
             checking_vertical = not checking_vertical
             y += 1 / 2
-        return ret_grid, ret_walls, message
+        return ret_grid, ret_walls, message, points

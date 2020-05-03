@@ -29,7 +29,7 @@ def construct_maze(grid, my_walls, inactive_neighbours, show_animation, player_s
 
         new_inactives = grid.get_inactive_neighbours(c_x, c_y)
 
-        for neighbor in new_inactives:
+        for neighbor in new_inactives:  # remove dupes
             if neighbor not in inactive_neighbours:
                 inactive_neighbours.append(neighbor)
         if show_animation:
