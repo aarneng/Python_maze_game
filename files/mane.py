@@ -57,7 +57,7 @@ class Mane(QMainWindow):
         self.file_successful = None
 
         self.challenge_mode = False
-        self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.x_squares - 1), randint(0, self.y_squares - 1)] for i in range(self.x_squares // 15 + self.y_squares // 15)]
+        self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.x_squares - 1), randint(0, self.y_squares - 1)] for i in range(self.x_squares // 10 + self.y_squares // 10)]
         self.previous_zombie_positions = []
         self.player_is_dead = False
         self.challenge_key = [randint(int(self.y_squares / 4 - 1), self.y_squares - 1),
@@ -186,6 +186,10 @@ class Mane(QMainWindow):
                         painter.drawText(75, 590, f"Current points: {self.points}")
                     else:
                         painter.drawText(75, 570, f"Current points: {self.points}")
+                painter.drawText(75, 610, f"Lost? Press 0 to find the way to the goal! (resets points to 0)")
+                painter.drawText(75, 630, f"If you want to see how a recursive search "
+                                          f"algorithm finds the route to the goal, press 9!")
+
             else:
                 painter.drawText(75, 550, f"No saving or finding solutions in challenge mode! Sorry!")
 
@@ -612,7 +616,7 @@ class Mane(QMainWindow):
                 self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
                 self.points = len(self.my_maze_solution) + 22
 
-            self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.x_squares - 1), randint(0, self.y_squares - 1)] for i in range(self.x_squares // 15 + self.y_squares // 15)]
+            self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.x_squares - 1), randint(0, self.y_squares - 1)] for i in range(self.x_squares // 10 + self.y_squares // 10)]
             self.player_is_dead = False
             self.challenge_key = [randint(int(self.x_squares / 2 - 1), self.x_squares - 1),
                                   randint(int(self.y_squares / 2 - 1), self.y_squares - 1)]
@@ -649,7 +653,7 @@ class Mane(QMainWindow):
                 self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
                 self.points = len(self.my_maze_solution) + 22
 
-            self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.x_squares - 1), randint(0, self.y_squares - 1)] for i in range(self.x_squares // 15 + self.y_squares // 15)]
+            self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.x_squares - 1), randint(0, self.y_squares - 1)] for i in range(self.x_squares // 10 + self.y_squares // 10)]
             self.player_is_dead = False
             self.challenge_key = [randint(int(self.x_squares / 2 - 1), self.x_squares - 1),
                                   randint(int(self.y_squares / 2 - 1), self.y_squares - 1)]
@@ -685,7 +689,7 @@ class Mane(QMainWindow):
                 self.my_maze_solution = solve_maze(self.grid, self.walls, self.player_is_on_square, self.goal_is_on_square)
                 self.points = len(self.my_maze_solution) + 22
 
-            self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.y_squares - 1), randint(0, self.x_squares - 1)] for i in range(self.x_squares // 15 + self.y_squares // 15)]
+            self.zombie_positions = [[0, self.x_squares - 1], [self.y_squares - 1, 0], [self.y_squares - 1, self.x_squares - 1]] + [[randint(0, self.y_squares - 1), randint(0, self.x_squares - 1)] for i in range(self.x_squares // 10 + self.y_squares // 10)]
             self.player_is_dead = False
             self.challenge_key = [randint(int(self.x_squares / 2 - 1), self.x_squares - 1),
                                   randint(int(self.y_squares / 2 - 1), self.y_squares - 1)]
@@ -738,7 +742,7 @@ class Mane(QMainWindow):
                 fn += ".txt"
             self.file_successful = write_file(self.grid, self.walls, fn)
 
-        if event.key() == Qt.Key_9:
+        if event.key() == Qt.Key_9 and not self.challenge_mode:
             self.solve_my_maze(show_all=True)
 
         if event.key() == Qt.Key_0 and not self.challenge_mode:
