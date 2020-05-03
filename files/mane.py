@@ -422,98 +422,20 @@ class Mane(QMainWindow):
                     return [i, j]
         return [-1, -1]  # else
 
-    def move_up(self):
-        if self.player_is_on_square[1] == 0:  # sometimes the player was able to glitch through otherwise
+    def move_to(self, square):
+        if square[::-1] == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
             return
-        square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
-        other_square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1] - 1]
-        if other_square.get_coords()[::-1] == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
+        if square[0] >= self.grid.get_height():
             return
-        wall = self.walls.is_there_wall_between(square, other_square)
-        if not wall:
-            self.prev_square = self.player_is_on_square
-            self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
-        elif wall == 3:
-            if self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
-        elif wall == 2:
-            if not self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] - 1]
-        else:
-            return
-        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
-        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-
-    def move_left(self):
-        square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
-        other_square = self.grid.get_grid()[self.player_is_on_square[0] - 1][self.player_is_on_square[1]]
-        if other_square.get_coords()[::-1] == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
-            return
-        ans = self.walls.is_there_wall_between(square, other_square)
-        if not ans:
-            self.prev_square = self.player_is_on_square
-            self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
-        elif ans == 3:
-            if self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
-        elif ans == 2:
-            if not self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0] - 1, self.player_is_on_square[1]]
-        else:
-            return
-        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
-        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-
-    def move_down(self):
-        if self.player_is_on_square[1] > self.grid.get_width() - 2:
-            return
-        square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
-        other_square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1] + 1]
-        if other_square.get_coords()[::-1] == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
-            return
-        wall = self.walls.is_there_wall_between(square, other_square)
-        if not wall:
-            self.prev_square = self.player_is_on_square
-            self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
-        elif wall == 3:
-            if self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
-        elif wall == 2:
-            if not self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0], self.player_is_on_square[1] + 1]
-        else:
-            return
-        self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
-        self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
-
-    def move_right(self):
-        if self.player_is_on_square[0] > self.grid.get_height() - 2:
-            return
-        square = self.grid.get_grid()[self.player_is_on_square[0]][self.player_is_on_square[1]]
-        other_square = self.grid.get_grid()[self.player_is_on_square[0] + 1][self.player_is_on_square[1]]
-        if other_square.get_coords()[::-1] == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
-            return
-        ans = self.walls.is_there_wall_between(square, other_square)
-        if not ans:
-            self.prev_square = self.player_is_on_square
-            self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
-        elif ans == 3:
-            if self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
-        elif ans == 2:
-            if not self.player_is_on_ground:
-                self.prev_square = self.player_is_on_square
-                self.player_is_on_square = [self.player_is_on_square[0] + 1, self.player_is_on_square[1]]
-        else:
+        if square[1] >= self.grid.get_width():
             return
 
+        ans = self.walls.is_there_wall_between(self.player_is_on_square[::-1], square[::-1], using_coords=True)
+        if (not ans) or (ans == 2 and not self.player_is_on_ground) or (ans == 3 and self.player_is_on_ground):
+            self.prev_square = self.player_is_on_square
+            self.player_is_on_square = square
+        else:
+            return
         self.grid.remove_player_from_square(self.prev_square[0], self.prev_square[1])
         self.grid.add_player_to_square(self.player_is_on_square[0], self.player_is_on_square[1])
 
@@ -777,22 +699,22 @@ class Mane(QMainWindow):
 
         if event.key() == Qt.Key_W:
             self.points -= 1
-            self.move_up()
+            self.move_to([self.player_is_on_square[0], self.player_is_on_square[1] - 1])
             self.update()
 
         if event.key() == Qt.Key_A:
             self.points -= 1
-            self.move_left()
+            self.move_to([self.player_is_on_square[0] - 1, self.player_is_on_square[1]])
             self.update()
 
         if event.key() == Qt.Key_S:
             self.points -= 1
-            self.move_down()
+            self.move_to([self.player_is_on_square[0], self.player_is_on_square[1] + 1])
             self.update()
 
         if event.key() == Qt.Key_D:
             self.points -= 1
-            self.move_right()
+            self.move_to([self.player_is_on_square[0] + 1, self.player_is_on_square[1]])
             self.update()
 
         if event.key() == Qt.Key_Space:
