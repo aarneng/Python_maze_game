@@ -2,6 +2,7 @@ from wall import Wall
 
 
 class Walls:
+    # create 2 sets od 2d arraws that each contain the walls of a certain orientation
     def __init__(self, grid, wall_inverse_ratio=10):
         self.width = grid.get_width()
         self.height = grid.get_height()

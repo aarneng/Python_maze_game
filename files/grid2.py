@@ -34,6 +34,8 @@ class NewGrid:
         self.grid[y][x].set_active()
 
     def get_inactive_neighbours(self, x, y):
+        # return all inactive neighbours next to that square
+        # this should probably be using coords :(
         x, y = y, x
         n = []
         if x > 0:  # avoid IndexErrors
@@ -58,6 +60,7 @@ class NewGrid:
         return n
 
     def get_active_neighbours(self, x, y):
+        # same as function above but returns active neighbours
         x, y = y, x
         n = []
         if x > 0:
@@ -87,6 +90,7 @@ class NewGrid:
         except IndexError:
             self.grid[y][x].set_goal()
         # If it works, it's ain't stupid… right?
+        # my code messes up somewhere, this is a failsafe
 
     def add_player_to_square(self, x, y):
         self.grid[x][y].set_player()

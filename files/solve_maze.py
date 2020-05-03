@@ -1,4 +1,6 @@
 def get_all_routes_from_square(square, grid, walls):
+    # get the squares next to the original param square that are not separated by walls
+    # uses coords (array)
     ret = []
     max_height = grid.get_height() - 1
     max_width = grid.get_width() - 1

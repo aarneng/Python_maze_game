@@ -193,6 +193,8 @@ class Mane(QMainWindow):
 
             s = self.square_size
 
+            # The following code looks janky becuase drawing on PyQt is a pain
+
             if self.challenge_mode and self.maze_done:
                 if any(self.player_is_on_square == i for i in self.zombie_positions) or any(self.player_is_on_square == i for i in self.previous_zombie_positions):
                     painter.setFont(QFont("Times", 34))
@@ -297,6 +299,8 @@ class Mane(QMainWindow):
                             painter.setPen(QPen(Qt.black, 1, Qt.SolidLine))
                         else:
                             painter.drawLine(i * s + 10, j * s + 10, (i + 1) * s + 10, j * s + 10)
+            # Draw walls, some with blue and some with green colors
+            # yeah it's kinda ugly
 
             self.goal_is_on_square = self.get_goal_square()
             if self.goal_is_on_square != [-1, -1]:
@@ -308,7 +312,7 @@ class Mane(QMainWindow):
                 if self.challenge_mode and not self.challenge_mode_key_found:
                     painter.setBrush(Qt.gray)
                     painter.setPen(QPen(Qt.red, 1, Qt.SolidLine))
-                    painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)
+                    painter.drawRect(goal_x * s + 12, goal_y * s + 12, s / 1.2, s / 1.2)  # to get a grey square
                     draw_key(self.goal_is_on_square, Qt.black)
 
             player_x = self.player_is_on_square[0]
@@ -334,6 +338,7 @@ class Mane(QMainWindow):
                     painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
                     painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 3.5) + 12, s / 5, s / 5)
                     painter.drawEllipse(player_x * s + (s / 2.6) + 12, player_y * s + (s / 1.5) + 12, s / 3.5, s / 5)
+                    # mouth open vs mouth closes (space bar animation)
             else:
                 painter.setPen(QColor(150, 190, 50))
                 painter.setBrush(QColor(150, 190, 50))
@@ -343,6 +348,7 @@ class Mane(QMainWindow):
                 painter.drawEllipse(player_x * s + (s / 2.7) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
                 painter.drawEllipse(player_x * s + (s / 1.6) + 12, player_y * s + (s / 4) + 12, s / 6, s / 6)
                 painter.drawArc(player_x * s + (s / 2.7) + 12, player_y * s + (s / 2) + 12,  s / 4, s / 6, 0, 180 * 16)
+                # dead player after zombie eats it
             # Yes, i should really be working more with percentages here. Yes, the +12 is also
             # HORRIBLE coding practice. Please forgive me. I'll try to fix this later
             if self.show_animation and not self.maze_done:
@@ -366,7 +372,7 @@ class Mane(QMainWindow):
                         prev = square
 
                 painter.setPen(Qt.red)
-                if len(self.all_answer_routes) > self.count + 1:
+                if len(self.all_answer_routes) > self.count + 1:  # draw the routes taken to find answer, if animation is toggled
                     draw_solution(self.all_answer_routes[self.count])
                     self.count += 1
                     self.update()
@@ -382,7 +388,7 @@ class Mane(QMainWindow):
                 explosion.play()
 
                 painter.setOpacity(0.7)
-                for i in range(100):
+                for i in range(100):  # draw the "explosion" at the end
                     painter.setBrush(choice([Qt.red, Qt.yellow, Qt.darkRed, Qt.white]))
                     s = randint(2, 250)
                     painter.drawEllipse(randint(0, 400), randint(0, 400), s, s)
@@ -431,6 +437,7 @@ class Mane(QMainWindow):
             return
 
         ans = self.walls.is_there_wall_between(self.player_is_on_square[::-1], square[::-1], using_coords=True)
+
         if (not ans) or (ans == 2 and not self.player_is_on_ground) or (ans == 3 and self.player_is_on_ground):
             self.prev_square = self.player_is_on_square
             self.player_is_on_square = square
@@ -446,11 +453,11 @@ class Mane(QMainWindow):
     def solve_my_maze(self, show_all=False):
         self.my_maze_solution, self.all_answer_routes = solve_maze(self.grid, self.walls, self.player_is_on_square,
                                            self.goal_is_on_square, show_all=show_all)
-        if not self.my_maze_solution:
+        if not self.my_maze_solution:  # if user inputs unsolvable maze we don't want to cause errors/crashes later on
             return
         # to show the solution from the player's square
         self.display_solution = True
-        self.points = min(self.points, 0)
+        self.points = min(self.points, 0)  # reset points
         self.update()
 
     def keyPressEvent(self, event):
@@ -654,7 +661,6 @@ class Mane(QMainWindow):
                     pass
                 else:
                     raise IndexError  # for lack of a better error type
-                self.show_menu = False
                 self.update()
             except FileNotFoundError:
                 self.msg = f"File < {fn} > was not found! Did you type it in correctly?"
@@ -685,17 +691,17 @@ class Mane(QMainWindow):
                 fn += ".txt"
             self.file_successful = write_file(self.grid, self.walls, fn, self.points)
 
+        if self.all_answer_routes and self.count + 1 != len(self.all_answer_routes):
+            return
+
+        if self.show_menu:  # don't want users from playing around in the maze while still in the menu
+            return
+
         if event.key() == Qt.Key_9 and not self.challenge_mode:
             self.solve_my_maze(show_all=True)
 
         if event.key() == Qt.Key_0 and not self.challenge_mode:
             self.solve_my_maze()
-
-        if self.all_answer_routes and self.count + 1 != len(self.all_answer_routes):
-            return
-
-        if self.show_menu:
-            return
 
         if event.key() == Qt.Key_W:
             self.points -= 1
