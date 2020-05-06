@@ -429,7 +429,7 @@ class Mane(QMainWindow):
         return [-1, -1]  # else
 
     def move_to(self, square):
-        if square[::-1] == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
+        if square == self.goal_is_on_square and self.challenge_mode and not self.challenge_mode_key_found:
             return
         if square[0] >= self.grid.get_height():
             return
